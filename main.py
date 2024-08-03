@@ -19,7 +19,7 @@ def main():
     state = {}
 
     # load weather (test) data
-    dataset_path = "/scratch/ll44/sc6160/test_data/dataset_source-era5_date-2022-01-01_res-1.0_levels-13_steps-20.nc"
+    dataset_path = "/scratch/ll44/sc6160/test_data/dataset_source-era5_date-2022-01-01_res-1.0_levels-13_steps-04.nc"
     # dataset_path = "/scratch/ll44/sc6160/test_data/dataset_source-era5_date-2022-01-01_res-0.25_levels-37_steps-04.nc"
     example_batch = xarray.open_dataset(dataset_path, engine='netcdf4')
 

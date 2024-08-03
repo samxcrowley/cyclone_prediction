@@ -3,3 +3,4 @@ model/
 out/
 test_data/
 tmp/
+interactive.*
