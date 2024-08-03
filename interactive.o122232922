@@ -1,0 +1,56 @@
+Model description:
+ 
+Low resolution version of the GraphCast model (1deg, smaller mesh), with 37
+pressure levels. This model is trained on ERA5 data from 1979 to 2015, and can
+be causally evaluated on 2016 and later years. This model takes as inputs
+`total_precipitation_6hr`. This model has much lower memory requirements.
+ 
+
+Model license:
+ 
+The model weights are licensed under the Creative Commons
+Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0). You
+may obtain a copy of the License at:
+https://creativecommons.org/licenses/by-nc-sa/4.0/.
+The weights were trained on ERA5 data, see README for attribution statement.
+ 
+
+ModelConfig(resolution=1.0, mesh_size=5, latent_size=512, gnn_msg_steps=16, hidden_layers=1, radius_query_fraction_edge_length=0.6, mesh2grid_edge_normalization_factor=0.6180338738074472)
+##### PREDICTIONS ######
+<xarray.Dataset> Size: 433MB
+Dimensions:                  (time: 20, batch: 1, lat: 181, lon: 360, level: 13)
+Coordinates:
+  * lon                      (lon) float32 1kB 0.0 1.0 2.0 ... 357.0 358.0 359.0
+  * lat                      (lat) float32 724B -90.0 -89.0 -88.0 ... 89.0 90.0
+  * level                    (level) int32 52B 50 100 150 200 ... 850 925 1000
+  * time                     (time) timedelta64[ns] 160B 0 days 06:00:00 ... ...
+Dimensions without coordinates: batch
+Data variables:
+    10m_u_component_of_wind  (time, batch, lat, lon) float32 5MB 0.5427 ... -...
+    10m_v_component_of_wind  (time, batch, lat, lon) float32 5MB -0.4054 ... ...
+    2m_temperature           (time, batch, lat, lon) float32 5MB 253.1 ... 278.3
+    geopotential             (time, batch, level, lat, lon) float32 68MB 1.98...
+    mean_sea_level_pressure  (time, batch, lat, lon) float32 5MB 9.957e+04 .....
+    specific_humidity        (time, batch, level, lat, lon) float32 68MB 7.21...
+    temperature              (time, batch, level, lat, lon) float32 68MB 239....
+    total_precipitation_6hr  (time, batch, lat, lon) float32 5MB -8.0 ... -64.41
+    u_component_of_wind      (time, batch, level, lat, lon) float32 68MB -2.0...
+    v_component_of_wind      (time, batch, level, lat, lon) float32 68MB -0.8...
+    vertical_velocity        (time, batch, level, lat, lon) float32 68MB 3.85...
+
+
+
+======================================================================================
+                  Resource Usage on 2024-08-03 23:56:49:
+   Job Id:             122232922.gadi-pbs
+   Project:            ll44
+   Exit Status:        0
+   Service Units:      4.71
+   NCPUs Requested:    12                     NCPUs Used: 12              
+                                           CPU Time Used: 00:52:28        
+   Memory Requested:   100.0GB               Memory Used: 4.12GB          
+   NGPUs Requested:    1                 GPU Utilisation: 0%              
+                                         GPU Memory Used: 0B              
+   Walltime requested: 00:30:00            Walltime Used: 00:07:32        
+   JobFS requested:    200.0GB                JobFS used: 0B              
+======================================================================================

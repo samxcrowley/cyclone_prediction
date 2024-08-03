@@ -1,0 +1,69 @@
+Loading python3/3.11.7
+  Loading requirement: intel-mkl/2023.2.0
+An NVIDIA GPU may be present on this machine, but a CUDA-enabled jaxlib is not installed. Falling back to cpu.
+/home/131/sc6160/environments/graphcast_env/lib/python3.11/site-packages/graphcast/rollout.py:127: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  num_target_steps = targets_template.dims["time"]
+/home/131/sc6160/environments/graphcast_env/lib/python3.11/site-packages/graphcast/autoregressive.py:202: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  scan_length = targets_template.dims['time']
+WARNING:absl:Skipping gradient checkpointing for sequence length of 1
+WARNING:root:No normalization location found for geopotential_at_surface
+WARNING:root:No normalization scale found for geopotential_at_surface
+WARNING:root:No normalization location found for land_sea_mask
+WARNING:root:No normalization scale found for land_sea_mask
+WARNING:root:No normalization location found for 10m_u_component_of_wind
+WARNING:root:No normalization scale found for 10m_u_component_of_wind
+WARNING:root:No normalization location found for 10m_v_component_of_wind
+WARNING:root:No normalization scale found for 10m_v_component_of_wind
+WARNING:root:No normalization location found for 2m_temperature
+WARNING:root:No normalization scale found for 2m_temperature
+WARNING:root:No normalization location found for day_progress_cos
+WARNING:root:No normalization scale found for day_progress_cos
+WARNING:root:No normalization location found for day_progress_sin
+WARNING:root:No normalization scale found for day_progress_sin
+WARNING:root:No normalization location found for geopotential
+WARNING:root:No normalization scale found for geopotential
+WARNING:root:No normalization location found for mean_sea_level_pressure
+WARNING:root:No normalization scale found for mean_sea_level_pressure
+WARNING:root:No normalization location found for specific_humidity
+WARNING:root:No normalization scale found for specific_humidity
+WARNING:root:No normalization location found for temperature
+WARNING:root:No normalization scale found for temperature
+WARNING:root:No normalization location found for toa_incident_solar_radiation
+WARNING:root:No normalization scale found for toa_incident_solar_radiation
+WARNING:root:No normalization location found for total_precipitation_6hr
+WARNING:root:No normalization scale found for total_precipitation_6hr
+WARNING:root:No normalization location found for u_component_of_wind
+WARNING:root:No normalization scale found for u_component_of_wind
+WARNING:root:No normalization location found for v_component_of_wind
+WARNING:root:No normalization scale found for v_component_of_wind
+WARNING:root:No normalization location found for vertical_velocity
+WARNING:root:No normalization scale found for vertical_velocity
+WARNING:root:No normalization location found for year_progress_cos
+WARNING:root:No normalization scale found for year_progress_cos
+WARNING:root:No normalization location found for year_progress_sin
+WARNING:root:No normalization scale found for year_progress_sin
+WARNING:root:No normalization location found for day_progress_cos
+WARNING:root:No normalization scale found for day_progress_cos
+WARNING:root:No normalization location found for day_progress_sin
+WARNING:root:No normalization scale found for day_progress_sin
+WARNING:root:No normalization location found for toa_incident_solar_radiation
+WARNING:root:No normalization scale found for toa_incident_solar_radiation
+WARNING:root:No normalization location found for year_progress_cos
+WARNING:root:No normalization scale found for year_progress_cos
+WARNING:root:No normalization location found for year_progress_sin
+WARNING:root:No normalization scale found for year_progress_sin
+WARNING:root:No normalization scale found for 10m_u_component_of_wind
+WARNING:root:No normalization scale found for 10m_v_component_of_wind
+WARNING:root:No normalization scale found for 2m_temperature
+WARNING:root:No normalization scale found for geopotential
+WARNING:root:No normalization scale found for mean_sea_level_pressure
+WARNING:root:No normalization scale found for specific_humidity
+WARNING:root:No normalization scale found for temperature
+WARNING:root:No normalization scale found for total_precipitation_6hr
+WARNING:root:No normalization scale found for u_component_of_wind
+WARNING:root:No normalization scale found for v_component_of_wind
+WARNING:root:No normalization scale found for vertical_velocity
+/home/131/sc6160/environments/graphcast_env/lib/python3.11/site-packages/graphcast/autoregressive.py:115: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  num_inputs = inputs.dims['time']
+/home/131/sc6160/environments/graphcast_env/lib/python3.11/site-packages/graphcast/rollout.py:205: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  num_inputs = prev_inputs.dims["time"]

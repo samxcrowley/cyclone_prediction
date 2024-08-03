@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# PBS Directives
+#PBS -N interactive
+
+# Change -q between “normal”/ “megamem”/ “gpuvolta”
+#PBS -q normal
+#PBS -P ll44
+#PBS -l walltime=0:20:00
+#PBS -l ncpus=4
+#PBS -l ngpus=0
+#PBS -l mem=50GB
+#PBS -l jobfs=10GB
+
+# Change -l to desired project codes, you will need to include both project
+# code if data to run the Python script are saved in two different
+# directories
+#PBS -l storage=scratch/ll44
+
+# Unloads all currently loaded modules
+module purge
+
+# Load Python3 module 3.11.7
+module load python3/3.11.7
+
+# Activating virtual environment (*Change below to your home directory path)
+source /home/131/sc6160/environments/graphcast_env/bin/activate
+
+# Python script execution (*Change file path below as desired)
+python3 /scratch/ll44/sc6160/testing.py
+
+# Deactivate virtual environment after execution
+deactivate
