@@ -6,11 +6,11 @@
 # Change -q between “normal”/ “megamem”/ “gpuvolta”
 #PBS -q gpuvolta
 #PBS -P ll44
-#PBS -l walltime=00:30:00
-#PBS -l ncpus=24
-#PBS -l ngpus=2
-#PBS -l mem=50GB
-#PBS -l jobfs=1GB
+#PBS -l walltime=02:00:00
+#PBS -l ncpus=48
+#PBS -l ngpus=4
+#PBS -l mem=200GB
+#PBS -l jobfs=100GB
 #PBS -l storage=scratch/ll44
 
 # Unloads all currently loaded modules

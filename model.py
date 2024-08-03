@@ -25,14 +25,12 @@ def load_model_from_cache(model_path):
     return params, model_config, task_config
 
 # constructs and wraps the GraphCast predictor
-def construct_wrapped_graphcast(
-        model_config: graphcast.ModelConfig,
-        task_config: graphcast.TaskConfig):
+def construct_wrapped_graphcast(model_config: graphcast.ModelConfig, task_config: graphcast.TaskConfig):
     
     # load normalisation data
-    diffs_stddev_path = "/scratch/ll44/sc6160/model/diffs_stddev_by_level.nc"
-    mean_by_level_path = "/scratch/ll44/sc6160/model/mean_by_level.nc"
-    stddev_by_level_path = "/scratch/ll44/sc6160/model/stddev_by_level.nc"
+    diffs_stddev_path = xarray.load_dataset("/scratch/ll44/sc6160/model/diffs_stddev_by_level.nc").compute()
+    mean_by_level_path = xarray.load_dataset("/scratch/ll44/sc6160/model/mean_by_level.nc").compute()
+    stddev_by_level_path = xarray.load_dataset("/scratch/ll44/sc6160/model/stddev_by_level.nc").compute()
     
     # deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)
