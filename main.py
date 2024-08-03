@@ -5,8 +5,10 @@ from plotting import scale, plot_data
 
 import xarray
 import jax
+import data_utils
 import numpy as np
-from graphcast import data_utils
+from graphcast import graphcast
+from graphcast import data_utils as g_data_utils
 
 import model
 
@@ -19,8 +21,30 @@ def main():
     state = {}
 
     # load weather (test) data
-    dataset_path = "/scratch/ll44/sc6160/test_data/dataset_source-era5_date-2022-01-01_res-1.0_levels-13_steps-04.nc"
+    dataset_path = "/scratch/ll44/sc6160/test_data/source:era5_date:2022-01-01_res:1.0_levels:13_steps:04.nc"
     # dataset_path = "/scratch/ll44/sc6160/test_data/dataset_source-era5_date-2022-01-01_res-0.25_levels-37_steps-04.nc"
+
+    def data_valid_for_model(
+        file_name: str,
+        model_config: graphcast.ModelConfig,
+        task_config: graphcast.TaskConfig):
+
+        file_parts = data_utils.parse_file_parts(file_name.removesuffix(".nc"))
+
+        return (
+            model_config.resolution in (0, float(file_parts["res"])) and
+            len(task_config.pressure_levels) == int(file_parts["levels"]) and
+            (
+                ("total_precipitation_6hr" in task_config.input_variables and
+                    file_parts["source"] in ("era5", "fake")) or
+                ("total_precipitation_6hr" not in task_config.input_variables and
+                    file_parts["source"] in ("hres", "fake"))
+            )
+        )
+    
+    if not data_valid_for_model(dataset_path, model_config, task_config):
+        raise ValueError("Invalid dataset file, rerun the cell above and choose a valid dataset file.")
+    
     example_batch = xarray.open_dataset(dataset_path, engine='netcdf4')
 
     # extract train and eval data
@@ -50,9 +74,10 @@ def main():
     
     # run predictions
     predictions = run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings)
-
-    print("##### PREDICTIONS ######")
-    print(predictions)
+    print()
+    print("########## PREDICTIONS")
+    print(predictions["2m_temperature"])
+    print()
     print()
     print()
 
@@ -63,12 +88,18 @@ def main():
     # subset and prepare data for plotting
     lat_bounds = [-45, -10]
     lon_bounds = [110, 155]
-    mslp_data_dict = prepare_data_dict(predictions, eval_targets, 'mean_sea_level_pressure', lat_bounds, lon_bounds)
+    # mslp_data_dict = prepare_data_dict(predictions, eval_targets, 'mean_sea_level_pressure', lat_bounds, lon_bounds)
     temp_data_dict = prepare_data_dict(predictions, eval_targets, '2m_temperature', lat_bounds, lon_bounds)
+    # prec_data_dict = prepare_data_dict(predictions, eval_targets, 'total_precipitation_6hr', lat_bounds, lon_bounds)
+    # shum_data_dict = prepare_data_dict(predictions, eval_targets, 'specific_humidity', lat_bounds, lon_bounds)
+    # wind_data_dict = prepare_data_dict(predictions, eval_targets, 'u_component_of_wind', lat_bounds, lon_bounds)
     
     # plot data
-    plot_data(mslp_data_dict, "Mean Sea Level Pressure (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="mslp_")
+    # plot_data(mslp_data_dict, "Mean Sea Level Pressure (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="mslp_")
     plot_data(temp_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="temp_")
+    # plot_data(prec_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="prec_")
+    # plot_data(shum_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="shum_")
+    # plot_data(wind_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="wind_")
 
 
 if __name__ == "__main__":

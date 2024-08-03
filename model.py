@@ -34,22 +34,20 @@ def construct_wrapped_graphcast(
     mean_by_level_path = "/scratch/ll44/sc6160/model/mean_by_level.nc"
     stddev_by_level_path = "/scratch/ll44/sc6160/model/stddev_by_level.nc"
     
-    # Deeper one-step predictor.
+    # deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)
 
-    # Modify inputs/outputs to `graphcast.GraphCast` to handle conversion to
-    # from/to float32 to/from BFloat16.
+    # modify inputs/outputs to `graphcast.GraphCast` to handle conversion to from/to float32 to/from BFloat16.
     predictor = casting.Bfloat16Cast(predictor)
 
-    # Modify inputs/outputs to `casting.Bfloat16Cast` so the casting to/from
-    # BFloat16 happens after applying normalization to the inputs/targets.
+    # modify inputs/outputs to `casting.Bfloat16Cast` so the casting to/from BFloat16 happens after applying normalization to the inputs/targets.
     predictor = normalization.InputsAndResiduals(
         predictor,
         diffs_stddev_by_level=diffs_stddev_path,
         mean_by_level=mean_by_level_path,
         stddev_by_level=stddev_by_level_path)
 
-    # Wraps everything so the one-step model can produce trajectories.
+    # wraps everything so the one-step model can produce trajectories.
     predictor = autoregressive.Predictor(predictor, gradient_checkpointing=True)
     
     return predictor

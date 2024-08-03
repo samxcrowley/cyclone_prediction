@@ -8,7 +8,13 @@ from graphcast import data_utils as g_data_utils
 from typing import Optional
 
 def parse_file_parts(file_name):
-    return dict(part.split("-", 1) for part in file_name.split("_"))
+    parts = {}
+    for part in file_name.split("/")[-1].split("_"):
+        print(part)
+        part_split = part.split(":", 1)
+        print(part_split)
+        parts[part_split[0]] = part_split[1]
+    return parts
 
 # selects data matching variable, level, max_steps
 def select(data: xarray.Dataset, variable: str, level: Optional[int] = None, max_steps: Optional[int] = None) -> xarray.Dataset:

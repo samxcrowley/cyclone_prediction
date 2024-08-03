@@ -7,14 +7,10 @@
 #PBS -q gpuvolta
 #PBS -P ll44
 #PBS -l walltime=00:30:00
-#PBS -l ncpus=12
-#PBS -l ngpus=1
-#PBS -l mem=100GB
-#PBS -l jobfs=200GB
-
-# Change -l to desired project codes, you will need to include both project
-# code if data to run the Python script are saved in two different
-# directories
+#PBS -l ncpus=24
+#PBS -l ngpus=2
+#PBS -l mem=50GB
+#PBS -l jobfs=1GB
 #PBS -l storage=scratch/ll44
 
 # Unloads all currently loaded modules
