@@ -13,16 +13,18 @@ from graphcast import data_utils as g_data_utils
 import model
 
 def main():
-    
+
+    # testing model and data
+    model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
+    dataset_path = "/scratch/ll44/sc6160/test_data/source-era5_date-2022-01-01_res-1.0_levels-13_steps-04.nc"
+
+    # full model and data (4 steps)
+    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
+    # dataset_path = "/scratch/ll44/sc6160/test_data/source-era5_date-2022-01-01_res-0.25_levels-37_steps-04.nc"
+
     # load model
-    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
-    model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
     params, model_config, task_config = model.load_model_from_cache(model_path)
     state = {}
-
-    # load weather (test) data
-    # dataset_path = "/scratch/ll44/sc6160/test_data/source:era5_date:2022-01-01_res:1.0_levels:13_steps:04.nc"
-    dataset_path = "/scratch/ll44/sc6160/test_data/source:era5_date:2022-01-01_res:0.25_levels:37_steps:04.nc"
 
     def data_valid_for_model(
         file_name: str,
@@ -60,11 +62,7 @@ def main():
             inputs=train_inputs,
             targets_template=train_targets,
             forcings=train_forcings)
-        
-    # loss_fn_jitted = \
-    #     model.drop_state(model.with_params(jax.jit(model.with_configs(model.loss_fn.apply, model_config, task_config)), params, state))
-    # grads_fn_jitted = \
-    #     model.with_params(jax.jit(model.with_configs(model.grads_fn, model_config, task_config)), params, state)
+    
     run_forward_jitted = \
         model.drop_state(model.with_params(jax.jit(model.with_configs(model.run_forward.apply, model_config, task_config)), params, state))
 
@@ -74,16 +72,10 @@ def main():
     
     # run predictions
     predictions = run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings)
-    # print()
-    # print("########## PREDICTIONS")
-    # print(predictions["2m_temperature"])
-    # print()
-    # print()
-    # print()
 
     # save data
-    predictions.to_netcdf("/scratch/ll44/sc6160/out/predictions_example.nc")
-    eval_targets.to_netcdf("/scratch/ll44/sc6160/out/eval_example.nc")
+    predictions.to_netcdf("/scratch/ll44/sc6160/out/predictions.nc")
+    eval_targets.to_netcdf("/scratch/ll44/sc6160/out/eval.nc")
 
     # subset and prepare data for plotting
     lat_bounds = [-45, -10]
@@ -91,15 +83,21 @@ def main():
     mslp_data_dict = prepare_data_dict(predictions, eval_targets, 'mean_sea_level_pressure', lat_bounds, lon_bounds)
     temp_data_dict = prepare_data_dict(predictions, eval_targets, '2m_temperature', lat_bounds, lon_bounds)
     prec_data_dict = prepare_data_dict(predictions, eval_targets, 'total_precipitation_6hr', lat_bounds, lon_bounds)
-    # shum_data_dict = prepare_data_dict(predictions, eval_targets, 'specific_humidity', lat_bounds, lon_bounds)
-    # wind_data_dict = prepare_data_dict(predictions, eval_targets, 'u_component_of_wind', lat_bounds, lon_bounds)
+    shum_data_dict = prepare_data_dict(predictions, eval_targets, 'specific_humidity', lat_bounds, lon_bounds)
+    wind_data_dict = prepare_data_dict(predictions, eval_targets, 'u_component_of_wind', lat_bounds, lon_bounds)
     
     # plot data
     plot_data(mslp_data_dict, "Mean Sea Level Pressure (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="mslp_")
     plot_data(temp_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="temp_")
     plot_data(prec_data_dict, "Precipitation (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="prec_")
-    # plot_data(shum_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="shum_")
-    # plot_data(wind_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="wind_")
+    plot_data(shum_data_dict, "Specific Humidity (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="shum_")
+    plot_data(wind_data_dict, "Wind (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="wind_")
+
+
+    # loss_fn_jitted = \
+    #     model.drop_state(model.with_params(jax.jit(model.with_configs(model.loss_fn.apply, model_config, task_config)), params, state))
+    # grads_fn_jitted = \
+    #     model.with_params(jax.jit(model.with_configs(model.grads_fn, model_config, task_config)), params, state)
 
 
 if __name__ == "__main__":

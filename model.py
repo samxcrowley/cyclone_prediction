@@ -31,7 +31,7 @@ def construct_wrapped_graphcast(model_config: graphcast.ModelConfig, task_config
     diffs_stddev_path = xarray.load_dataset("/scratch/ll44/sc6160/model/diffs_stddev_by_level.nc").compute()
     mean_by_level_path = xarray.load_dataset("/scratch/ll44/sc6160/model/mean_by_level.nc").compute()
     stddev_by_level_path = xarray.load_dataset("/scratch/ll44/sc6160/model/stddev_by_level.nc").compute()
-    
+
     # deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)
 
@@ -47,7 +47,7 @@ def construct_wrapped_graphcast(model_config: graphcast.ModelConfig, task_config
 
     # wraps everything so the one-step model can produce trajectories.
     predictor = autoregressive.Predictor(predictor, gradient_checkpointing=True)
-    
+
     return predictor
 
 @hk.transform_with_state

@@ -11,7 +11,7 @@ def parse_file_parts(file_name):
     parts = {}
     for part in file_name.split("/")[-1].split("_"):
         print(part)
-        part_split = part.split(":", 1)
+        part_split = part.split("-", 1)
         print(part_split)
         parts[part_split[0]] = part_split[1]
     return parts
