@@ -15,12 +15,12 @@ import model
 def main():
 
     # testing model and data
-    model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
-    dataset_path = "/scratch/ll44/sc6160/test_data/source-era5_date-2022-01-01_res-1.0_levels-13_steps-04.nc"
+    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
+    # dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-1.0_levels-13_steps-04.nc"
 
     # full model and data (4 steps)
-    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
-    # dataset_path = "/scratch/ll44/sc6160/test_data/source-era5_date-2022-01-01_res-0.25_levels-37_steps-04.nc"
+    model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
+    dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-0.25_levels-37_steps-04.nc"
 
     # load model
     params, model_config, task_config = model.load_model_from_cache(model_path)

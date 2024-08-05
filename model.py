@@ -32,7 +32,7 @@ def construct_wrapped_graphcast(model_config: graphcast.ModelConfig, task_config
     mean_by_level_path = xarray.load_dataset("/scratch/ll44/sc6160/model/mean_by_level.nc").compute()
     stddev_by_level_path = xarray.load_dataset("/scratch/ll44/sc6160/model/stddev_by_level.nc").compute()
 
-    # deeper one-step predictor.
+    # deeper one-step predictor
     predictor = graphcast.GraphCast(model_config, task_config)
 
     # modify inputs/outputs to `graphcast.GraphCast` to handle conversion to from/to float32 to/from BFloat16.

@@ -26,8 +26,8 @@ module load python3/3.11.7
 # Activating virtual environment (*Change below to your home directory path)
 source /home/131/sc6160/environments/graphcast_env/bin/activate
 
-# Python script execution (*Change file path below as desired)
-python3 /scratch/ll44/sc6160/main.py
+# Python script execution
+python3 /scratch/ll44/sc6160/testing.py
 
 # Deactivate virtual environment after execution
 deactivate

@@ -1,0 +1,17 @@
+- dynamically get all data on a TC just by giving name and year
+-- change to only use ID rather than name and year
+-- dynamically obtain start and end times of TC from the IBTrACS dataset to feed into tracking algorithms
+
+- figure out / fix lon and lat arrays from IBTrACS dataset being of the form [[values]] so that it is just [values]
+
+- time_step should be global (maybe could use a time file? or can go in data_utils)
+
+- rename / change data_utils -> utils ?
+
+- check and fix warnings from running output
+
+- produce track density map of observed data on Australia region
+
+- tracking algo. in words
+
+- Seaborn for e.g. violin plots

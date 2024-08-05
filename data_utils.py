@@ -7,7 +7,7 @@ from graphcast import data_utils as g_data_utils
 from typing import Optional
 
 LAT_BOUNDS = [-45, -10]
-LON_BOUNDS = [110, 155]
+LON_BOUNDS = [110, 160]
 
 def parse_file_parts(file_name):
     parts = {}
