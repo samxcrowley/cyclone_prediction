@@ -5,6 +5,8 @@ import xarray, matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
+import data_utils
+
 from typing import Optional
 
 def scale(data: xarray.Dataset, center: Optional[float] = None, robust: bool = False) -> tuple[xarray.Dataset, matplotlib.colors.Normalize, str]:
@@ -82,3 +84,9 @@ def plot_data(
     anim.save(os.path.join(output_dir, f"{output_prefix}animation.gif"), writer="pillow", fps=2)
 
     plt.close(figure.number)
+
+def plot_metrics(preds, evals, metrics, lat_bounds, lon_bounds):
+
+    for key in metrics:
+        data_dict = data_utils.prepare_data_dict(preds, evals, key, lat_bounds, lon_bounds)
+        plot_data(data_dict, key, plot_size=5, robust=True, cols=3, output_prefix=metrics[key])

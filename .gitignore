@@ -1,6 +1,7 @@
 __pycache__/
 model/
 out/
+data/
 test_data/
 tmp/
 interactive.*

@@ -6,7 +6,7 @@ import jax
 from graphcast import autoregressive, casting, checkpoint, \
     graphcast, normalization, xarray_tree, xarray_jax
 
-from data_utils import select, parse_file_parts
+import data_utils
 
 def load_model_from_cache(model_path):
 
@@ -87,3 +87,21 @@ def with_params(fn, params, state):
 # predictions. This is requiredy by our rollout code, and generally simpler.
 def drop_state(fn):
   return lambda **kw: fn(**kw)[0]
+
+def data_valid_for_model(
+    file_name: str,
+    model_config: graphcast.ModelConfig,
+    task_config: graphcast.TaskConfig):
+
+    file_parts = data_utils.parse_file_parts(file_name.removesuffix(".nc"))
+
+    return (
+        model_config.resolution in (0, float(file_parts["res"])) and
+        len(task_config.pressure_levels) == int(file_parts["levels"]) and
+        (
+            ("total_precipitation_6hr" in task_config.input_variables and
+                file_parts["source"] in ("era5", "fake")) or
+            ("total_precipitation_6hr" not in task_config.input_variables and
+                file_parts["source"] in ("hres", "fake"))
+        )
+    )

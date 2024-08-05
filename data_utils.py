@@ -1,11 +1,13 @@
 import dataclasses
 import xarray
 import numpy as np
-import matplotlib
 
 from graphcast import data_utils as g_data_utils
 
 from typing import Optional
+
+LAT_BOUNDS = [-45, -10]
+LON_BOUNDS = [110, 155]
 
 def parse_file_parts(file_name):
     parts = {}

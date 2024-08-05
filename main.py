@@ -1,7 +1,7 @@
 import model
-from data_utils import select, prepare_data_dict, extract_inputs_targets_forcings
-from prediction import run_predictions
-from plotting import scale, plot_data
+import data_utils
+import prediction
+import plotting
 
 import xarray
 import jax
@@ -25,26 +25,8 @@ def main():
     # load model
     params, model_config, task_config = model.load_model_from_cache(model_path)
     state = {}
-
-    def data_valid_for_model(
-        file_name: str,
-        model_config: graphcast.ModelConfig,
-        task_config: graphcast.TaskConfig):
-
-        file_parts = data_utils.parse_file_parts(file_name.removesuffix(".nc"))
-
-        return (
-            model_config.resolution in (0, float(file_parts["res"])) and
-            len(task_config.pressure_levels) == int(file_parts["levels"]) and
-            (
-                ("total_precipitation_6hr" in task_config.input_variables and
-                    file_parts["source"] in ("era5", "fake")) or
-                ("total_precipitation_6hr" not in task_config.input_variables and
-                    file_parts["source"] in ("hres", "fake"))
-            )
-        )
     
-    if not data_valid_for_model(dataset_path, model_config, task_config):
+    if not model.data_valid_for_model(dataset_path, model_config, task_config):
         raise ValueError(f"Invalid dataset file {dataset_path}.")
     
     example_batch = xarray.open_dataset(dataset_path, engine='netcdf4')
@@ -52,7 +34,7 @@ def main():
     # extract train and eval data
     train_inputs, train_targets, train_forcings, \
         eval_inputs, eval_targets, eval_forcings = \
-            extract_inputs_targets_forcings(example_batch, task_config)
+            data_utils.extract_inputs_targets_forcings(example_batch, task_config)
     
     init_jitted = jax.jit(model.with_configs(model.run_forward.init, model_config, task_config))
 
@@ -71,28 +53,19 @@ def main():
         "re-filter the dataset list, and download the correct data.")
     
     # run predictions
-    predictions = run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings)
+    preds = prediction.run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings)
 
     # save data
-    predictions.to_netcdf("/scratch/ll44/sc6160/out/predictions.nc")
-    eval_targets.to_netcdf("/scratch/ll44/sc6160/out/eval.nc")
+    preds.to_netcdf("/scratch/ll44/sc6160/out/preds.nc")
+    eval_targets.to_netcdf("/scratch/ll44/sc6160/out/evals.nc")
 
-    # subset and prepare data for plotting
-    lat_bounds = [-45, -10]
-    lon_bounds = [110, 155]
-    mslp_data_dict = prepare_data_dict(predictions, eval_targets, 'mean_sea_level_pressure', lat_bounds, lon_bounds)
-    temp_data_dict = prepare_data_dict(predictions, eval_targets, '2m_temperature', lat_bounds, lon_bounds)
-    prec_data_dict = prepare_data_dict(predictions, eval_targets, 'total_precipitation_6hr', lat_bounds, lon_bounds)
-    shum_data_dict = prepare_data_dict(predictions, eval_targets, 'specific_humidity', lat_bounds, lon_bounds)
-    wind_data_dict = prepare_data_dict(predictions, eval_targets, 'u_component_of_wind', lat_bounds, lon_bounds)
+    metrics = {'2m_temperature': "temp_",
+           'mean_sea_level_pressure': "mslp_",
+           'total_precipitation_6hr': "prec_"
+        #    'u_component_of_wind': "u_wind_"
+           }
     
-    # plot data
-    plot_data(mslp_data_dict, "Mean Sea Level Pressure (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="mslp_")
-    plot_data(temp_data_dict, "2m Temperature (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="temp_")
-    plot_data(prec_data_dict, "Precipitation (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="prec_")
-    plot_data(shum_data_dict, "Specific Humidity (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="shum_")
-    plot_data(wind_data_dict, "Wind (Australia Region)", plot_size=5, robust=True, cols=3, output_prefix="wind_")
-
+    plotting.plot_metrics(preds, eval_targets, metrics, data_utils.LAT_BOUNDS, data_utils.LON_BOUNDS)
 
     # loss_fn_jitted = \
     #     model.drop_state(model.with_params(jax.jit(model.with_configs(model.loss_fn.apply, model_config, task_config)), params, state))
