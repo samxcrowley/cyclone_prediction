@@ -1,0 +1,2 @@
+- Continued working on setting up GraphCast
+- Continued trying to troubleshoot Jonas' previous problems

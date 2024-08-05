@@ -1,0 +1,8 @@
+- Over the weekend I fixed Jonas' issues with the full GraphCast model, so now I can reliably use the full model
+- Worked on cleaning up and organising code (into logical individual .py files and cleaned up imports etc.)
+- Began using an IBTrACS dataset to learn how it works and is structured
+- Chose an initial test TC (Anika 2022) and began trying to plot its track on a map of Australia
+-- This involved using Cartopy for the first time, will have to continue to learn
+- Successfully plotted TC Anika on a Cartopy map of Australia
+- 11am disaster meeting
+-- 
