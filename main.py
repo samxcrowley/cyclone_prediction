@@ -1,11 +1,11 @@
 import model
-import data_utils
+import utils
 import prediction
 import plotting
 
 import xarray
 import jax
-import data_utils
+import utils
 import numpy as np
 from graphcast import graphcast
 from graphcast import data_utils as g_data_utils
@@ -15,26 +15,28 @@ import model
 def main():
 
     # testing model and data
-    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
-    # dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-1.0_levels-13_steps-04.nc"
+    model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
+    dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-1.0_levels-13_steps-40.nc"
 
-    # full model and data (4 steps)
-    model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
-    dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-0.25_levels-37_steps-04.nc"
+    # full model and data
+    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
+    # dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-1.0_levels-37_steps-40.nc"
 
     # load model
     params, model_config, task_config = model.load_model_from_cache(model_path)
     state = {}
+
+    # print(xarray.open_dataset(dataset_path))
     
     if not model.data_valid_for_model(dataset_path, model_config, task_config):
         raise ValueError(f"Invalid dataset file {dataset_path}.")
     
-    example_batch = xarray.open_dataset(dataset_path, engine='netcdf4')
+    example_batch = xarray.open_dataset(dataset_path)
 
     # extract train and eval data
     train_inputs, train_targets, train_forcings, \
         eval_inputs, eval_targets, eval_forcings = \
-            data_utils.extract_inputs_targets_forcings(example_batch, task_config)
+            utils.extract_inputs_targets_forcings(example_batch, task_config)
     
     init_jitted = jax.jit(model.with_configs(model.run_forward.init, model_config, task_config))
 
@@ -65,7 +67,7 @@ def main():
         #    'u_component_of_wind': "u_wind_"
            }
     
-    plotting.plot_metrics(preds, eval_targets, metrics, data_utils.LAT_BOUNDS, data_utils.LON_BOUNDS)
+    plotting.plot_metrics(preds, eval_targets, metrics, utils.AUS_LAT_BOUNDS, utils.AUS_LON_BOUNDS)
 
     # loss_fn_jitted = \
     #     model.drop_state(model.with_params(jax.jit(model.with_configs(model.loss_fn.apply, model_config, task_config)), params, state))

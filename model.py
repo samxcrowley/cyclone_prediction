@@ -6,7 +6,7 @@ import jax
 from graphcast import autoregressive, casting, checkpoint, \
     graphcast, normalization, xarray_tree, xarray_jax
 
-import data_utils
+import utils
 
 def load_model_from_cache(model_path):
 
@@ -93,7 +93,7 @@ def data_valid_for_model(
     model_config: graphcast.ModelConfig,
     task_config: graphcast.TaskConfig):
 
-    file_parts = data_utils.parse_file_parts(file_name.removesuffix(".nc"))
+    file_parts = utils.parse_file_parts(file_name.removesuffix(".nc"))
 
     return (
         model_config.resolution in (0, float(file_parts["res"])) and

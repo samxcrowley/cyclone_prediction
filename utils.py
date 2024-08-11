@@ -1,4 +1,5 @@
 import dataclasses
+from datetime import datetime, timedelta
 import xarray
 import numpy as np
 
@@ -6,8 +7,10 @@ from graphcast import data_utils as g_data_utils
 
 from typing import Optional
 
-LAT_BOUNDS = [-45, -10]
-LON_BOUNDS = [110, 160]
+AUS_LON_BOUNDS = [110, 160]
+AUS_LAT_BOUNDS = [-45, -10]
+EARTH_RADIUS = 6371.0
+TIME_STEP = timedelta(hours=6)
 
 def parse_file_parts(file_name):
     parts = {}
@@ -71,3 +74,12 @@ def extract_inputs_targets_forcings(example_batch, task_config):
         example_batch, target_lead_times=slice("6h", f"{eval_steps*6}h"), **dataclasses.asdict(task_config))
     
     return train_inputs, train_targets, train_forcings, eval_inputs, eval_targets, eval_forcings
+
+def datetime_to_timedelta(datetime, ref_time):
+
+    datetime = np.datetime64(datetime, 'ns')
+    ref_time = np.datetime64(ref_time, 'ns')
+    
+    timedelta_value = datetime - ref_time
+    
+    return timedelta_value

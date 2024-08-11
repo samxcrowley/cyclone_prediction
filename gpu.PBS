@@ -6,7 +6,7 @@
 # Change -q between “normal”/ “megamem”/ “gpuvolta”
 #PBS -q gpuvolta
 #PBS -P ll44
-#PBS -l walltime=02:00:00
+#PBS -l walltime=05:00:00
 #PBS -l ncpus=48
 #PBS -l ngpus=4
 #PBS -l mem=200GB

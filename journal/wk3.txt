@@ -15,6 +15,12 @@
 
 - Began work on a naive MSLP tracking algo which takes in starting lat and lon
 
+- Had a meeting with Linh on Thursday revising tracking algo devised from ECMWF paper
+
+- Began working on ECMWF based tracking algo
+
+- Began working on density map visualisation
+
 
 
 - Check-in with Linh
