@@ -1,10 +1,4 @@
-- dynamically get all data on a TC just by giving name and year
--- change to only use ID rather than name and year
--- dynamically obtain start and end times of TC from the IBTrACS dataset to feed into tracking algorithms
-
 - figure out / fix lon and lat arrays from IBTrACS dataset being of the form [[values]] so that it is just [values]
-
-- rename / change data_utils -> utils ?
 
 - check and fix warnings from running output
 
@@ -12,5 +6,9 @@
 
 - timedelta vs. datetime mismatch (ideally all in datetime)
 -- is pred data removing datetime field??
+
+- clean up code
+
+- change orderings to (lat,lon)
 
 - Seaborn for e.g. violin plots

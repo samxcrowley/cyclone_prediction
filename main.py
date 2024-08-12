@@ -14,22 +14,17 @@ import model
 
 def main():
 
-    # testing model and data
-    model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
-    dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-1.0_levels-13_steps-40.nc"
-
-    # full model and data
-    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
-    # dataset_path = "/scratch/ll44/sc6160/data/ERA5/source-era5_date-2022-01-01_res-1.0_levels-37_steps-40.nc"
+    model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
+    # model_path = "/scratch/ll44/sc6160/model/params_GraphCast_small - ERA5 1979-2015 - resolution 1.0 - pressure levels 13 - mesh 2to5 - precipitation input and output.npz"
+    
+    dataset_path = "/scratch/ll44/sc6160/data/2022-01/source-era5_res-0.25_levels-37_merged_resampled_6h_full.nc"
 
     # load model
     params, model_config, task_config = model.load_model_from_cache(model_path)
     state = {}
-
-    # print(xarray.open_dataset(dataset_path))
     
-    if not model.data_valid_for_model(dataset_path, model_config, task_config):
-        raise ValueError(f"Invalid dataset file {dataset_path}.")
+    # if not model.data_valid_for_model(dataset_path, model_config, task_config):
+    #     raise ValueError(f"Invalid dataset file {dataset_path}.")
     
     example_batch = xarray.open_dataset(dataset_path)
 
@@ -58,21 +53,15 @@ def main():
     preds = prediction.run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings)
 
     # save data
-    preds.to_netcdf("/scratch/ll44/sc6160/out/preds.nc")
-    eval_targets.to_netcdf("/scratch/ll44/sc6160/out/evals.nc")
+    preds.to_netcdf(f"/scratch/ll44/sc6160/out/preds_jan_22.nc")
+    eval_targets.to_netcdf(f"/scratch/ll44/sc6160/out/evals_jan_22.nc")
 
     metrics = {'2m_temperature': "temp_",
-           'mean_sea_level_pressure': "mslp_",
-           'total_precipitation_6hr': "prec_"
-        #    'u_component_of_wind': "u_wind_"
-           }
+        'mean_sea_level_pressure': "mslp_",
+        'total_precipitation_6hr': "prec_"
+    }
     
     plotting.plot_metrics(preds, eval_targets, metrics, utils.AUS_LAT_BOUNDS, utils.AUS_LON_BOUNDS)
-
-    # loss_fn_jitted = \
-    #     model.drop_state(model.with_params(jax.jit(model.with_configs(model.loss_fn.apply, model_config, task_config)), params, state))
-    # grads_fn_jitted = \
-    #     model.with_params(jax.jit(model.with_configs(model.grads_fn, model_config, task_config)), params, state)
 
 
 if __name__ == "__main__":

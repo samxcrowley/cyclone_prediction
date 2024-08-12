@@ -91,9 +91,9 @@ def plot_metrics(preds, evals, metrics, lat_bounds, lon_bounds):
 
     for key in metrics:
         data_dict = utils.prepare_data_dict(preds, evals, key, lat_bounds, lon_bounds)
-        plot_data(data_dict, key, plot_size=5, robust=True, cols=3, output_prefix=metrics[key])
+        plot_data(data_dict, key, plot_size=5, robust=True, cols=3, output_prefix=f"metrics/{metrics[key]}")
 
-def plot_tc_track(tc_id, tc_name, tc_lons, tc_lats):
+def plot_tc_track(tc_id, tc_name, tc_lons, tc_lats, aus_bounds=True):
 
     # create a new figure with a specific size and projection
     plt.figure(figsize=(10, 8))
@@ -108,7 +108,8 @@ def plot_tc_track(tc_id, tc_name, tc_lons, tc_lats):
     ax.add_feature(cfeature.RIVERS)
 
     # set the bounds to Australia
-    ax.set_extent(utils.AUS_LON_BOUNDS + utils.AUS_LAT_BOUNDS, crs=ccrs.PlateCarree())
+    if aus_bounds:
+        ax.set_extent(utils.AUS_LON_BOUNDS + utils.AUS_LAT_BOUNDS, crs=ccrs.PlateCarree())
 
     # plot the cyclone track
     ax.plot(tc_lons, tc_lats, marker='o', color='red', markersize=5, linestyle='-', linewidth=2, transform=ccrs.PlateCarree())

@@ -19,8 +19,6 @@ def load_model_from_cache(model_path):
 
         print("Model description:\n", ckpt.description, "\n")
         print("Model license:\n", ckpt.license, "\n")
-    
-    print(model_config)
 
     return params, model_config, task_config
 
