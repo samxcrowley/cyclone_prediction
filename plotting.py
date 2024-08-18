@@ -4,6 +4,7 @@ import numpy as np
 import xarray, matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import animation
+import metpy.plots as mp
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
@@ -112,8 +113,64 @@ def plot_tc_track(tc_id, tc_name, tc_lons, tc_lats, aus_bounds=True):
         ax.set_extent(utils.AUS_LON_BOUNDS + utils.AUS_LAT_BOUNDS, crs=ccrs.PlateCarree())
 
     # plot the cyclone track
-    ax.plot(tc_lons, tc_lats, marker='o', color='red', markersize=5, linestyle='-', linewidth=2, transform=ccrs.PlateCarree())
+    ax.plot(tc_lats, tc_lons, marker='o', color='red', markersize=5, linestyle='-', linewidth=2, transform=ccrs.PlateCarree())
 
     # tc_id = tc_id.decode("utf-8")
     plt.title(f"Cyclone Track for {tc_id}")
     plt.savefig(f"/scratch/ll44/sc6160/out/plots/{tc_name}_track_plot.png", dpi=300, bbox_inches='tight')
+
+def plot_tc_track_with_pred(tc_id, tc_name, tc_lats, tc_lons, tc_pred_lats, tc_pred_lons, aus_bounds=True):
+
+    # create a new figure with a specific size and projection
+    plt.figure(figsize=(10, 8))
+    ax = plt.axes(projection=ccrs.PlateCarree())
+
+    # add map features
+    ax.coastlines()
+    ax.add_feature(cfeature.BORDERS)
+    ax.add_feature(cfeature.LAND)
+    ax.add_feature(cfeature.OCEAN)
+    ax.add_feature(cfeature.LAKES, alpha=0.5)
+    ax.add_feature(cfeature.RIVERS)
+
+    # set the bounds to Australia
+    if aus_bounds:
+        ax.set_extent(utils.AUS_LON_BOUNDS + utils.AUS_LAT_BOUNDS, crs=ccrs.PlateCarree())
+
+    ax.plot(tc_lons, tc_lats, marker='o', color='blue', markersize=5, linestyle='-', linewidth=2, transform=ccrs.PlateCarree())
+    ax.plot(tc_pred_lons, tc_pred_lats, marker='o', color='red', markersize=5, linestyle='-', linewidth=2, transform=ccrs.PlateCarree())
+
+    plt.title(f"Cyclone Track for {tc_id}")
+    plt.savefig(f"/scratch/ll44/sc6160/out/plots/{tc_name}_track_plot.png", dpi=300, bbox_inches='tight')
+
+
+def plot_pred_track_with_fields(data, tc_id, tc_lat, tc_lon, track_lat, track_lon, time):
+
+    cntr2 = mp.ContourPlot()
+    cntr2.data = data
+    cntr2.field = 'msl'
+    # cntr2.time = time
+    cntr2.contours = np.arange(900, 1100, 2).tolist()
+    cntr2.linecolor = 'black'
+    cntr2.linestyle = 'solid'
+    cntr2.label_fontsize = 15
+    cntr2.clabels = True
+    cntr2.plot_units = 'hPa' # Change from Pa to hPa
+    cntr2.mpl_args = {'alpha': 0.7}
+
+    panel = mp.MapPanel()
+    panel.area = [105, 160, -50, 0] # Boundary of Australia
+    panel.layers = ['states', 'coastline', 'borders']
+    panel.title = f'UTC {time}'
+    panel.title_fontsize = 30
+    panel.plots = [cntr2]
+
+    pc = mp.PanelContainer()
+    pc.size = (15, 15)
+    pc.panels = [panel]
+
+    # panel.ax.plot(tc_lon, tc_lat, marker='X', color='red', markersize=15, transform=ccrs.PlateCarree())
+
+    panel.ax.plot(track_lon, track_lat, marker='X', color='blue', markersize=15, transform=ccrs.PlateCarree())
+
+    pc.save(f"/scratch/ll44/sc6160/out/plots/metpy_tracking/{tc_id}_{time.strftime('%Y%m%d%H')}.png")

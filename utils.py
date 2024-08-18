@@ -1,16 +1,37 @@
+from typing import Optional
 import dataclasses
 from datetime import datetime, timedelta
 import xarray
 import numpy as np
+from glob import glob
 
 from graphcast import data_utils as g_data_utils
 
-from typing import Optional
-
-AUS_LON_BOUNDS = [110, 160]
-AUS_LAT_BOUNDS = [-45, -10]
-EARTH_RADIUS = 6371.0
+AUS_LON_BOUNDS = [100, 160]
+AUS_LAT_BOUNDS = [-50, 0]
+EARTH_RADIUS_KM = 6371.0
+EARTH_RADIUS_M = 6371000
 TIME_STEP = timedelta(hours=6)
+
+def load_sl_var(year, month, time, var):
+
+    data = xarray.open_dataset(glob(f"/g/data/rt52/era5/single-levels/reanalysis/{var}/{year}/{var}_era5_oper_sfc_{year}{month:02d}01-*.nc")[0]) \
+                    .sel(latitude=slice(AUS_LAT_BOUNDS[1], AUS_LAT_BOUNDS[0]), \
+                        longitude=slice(AUS_LON_BOUNDS[0], AUS_LON_BOUNDS[1])) \
+                    .resample(time='6h').nearest() \
+                    .sel(time=time, method='nearest')
+    
+    return data
+
+def load_pl_var(year, month, time, var):
+
+    data = xarray.open_dataset(glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/{var}/{year}/{var}_era5_oper_pl_{year}{month:02d}01-*.nc")[0]) \
+                    .sel(latitude=slice(AUS_LAT_BOUNDS[1], AUS_LAT_BOUNDS[0]), \
+                        longitude=slice(AUS_LON_BOUNDS[0], AUS_LON_BOUNDS[1])) \
+                    .resample(time='6h').nearest() \
+                    .sel(time=time, method='nearest')
+    
+    return data
 
 def parse_file_parts(file_name):
     parts = {}
@@ -83,3 +104,13 @@ def datetime_to_timedelta(datetime, ref_time):
     timedelta_value = datetime - ref_time
     
     return timedelta_value
+
+def timedelta_to_datetime(timedelta_obj, ref_time):
+    # If the timedelta is a numpy timedelta64 object, convert it to a Python timedelta
+    if isinstance(timedelta_obj, np.timedelta64):
+        timedelta_obj = timedelta(seconds=timedelta_obj / np.timedelta64(1, 's'))
+
+    # Add the timedelta to the reference datetime
+    result_datetime = ref_time + timedelta_obj
+    
+    return result_datetime

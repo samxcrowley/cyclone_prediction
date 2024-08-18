@@ -5,23 +5,23 @@ import xarray as xr
 # ANIKA: 2022055S13129
 # KARIM: 2022127S07088
 # DOVI: 2022038S19164
+# KIRRILY: 2024017S15151
+# CHARLOTTE (Mar 2022): 2022076S10126
+# SETH: 2021358S09130
 
 ibtracs = xr.open_dataset("/scratch/ll44/sc6160/data/IBTrACS/IBTrACS.last3years.v04r01.nc")
 
-tc_id = "2022008S13148".encode("utf-8")
-tc_name = "DOVI"
-tc_season = 2022
+tc_name = "ILSA"
 
-# locate TC id
 matching_ids = []
 
 for i in range(ibtracs.sizes["storm"]):
 
     name = ibtracs["name"].isel(storm=i).item().decode("utf-8")
-    season = ibtracs["season"].isel(storm=i).item()
+    # season = ibtracs["season"].isel(storm=i).item()
     sid = ibtracs["sid"].isel(storm=i).item()
 
-    if name == tc_name and season == tc_season:
+    if name == tc_name:
         matching_ids.append(sid)
 
 print(matching_ids[0])

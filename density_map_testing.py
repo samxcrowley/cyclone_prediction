@@ -15,17 +15,6 @@ import utils
 # - {start_time: *, end_time: *, lats: [], lons: []}
 def plot_density_map(tracks):
 
-    # earliest = datetime(2100, 1, 1)
-    # latest = datetime(1800, 1, 1)
-
-    # for track in tracks:
-    #     if track['start_time'] < earliest:
-    #         earliest = track['start_time']
-    #     if track['end_time'] > latest:
-    #         latest = track['end_time']
-
-    # times = [earliest + i * utils.TIME_STEP for i in range(int((latest - earliest) / utils.TIME_STEP) + 1)]
-
     grid_res = 0.25
     ri = 300
 
@@ -47,9 +36,11 @@ def plot_density_map(tracks):
             for i, grid_lat in enumerate(lats):
                 for j, grid_lon in enumerate(lons):
 
+                    # double check calc.
                     r = geodesic((lat, lon), (grid_lat, grid_lon)).km
                     density[i, j] += impact_factor(r, ri)
 
+                    # center of grid squares
 
 
     plt.figure(figsize=(10, 8))
@@ -68,6 +59,8 @@ def plot_density_map(tracks):
     plt.savefig("/scratch/ll44/sc6160/out/plots/density.png", dpi=300, bbox_inches='tight')
 
 def impact_factor(r, ri):
+
     if r > ri:
         return 0
+    
     return 1 - (r / ri)

@@ -6,16 +6,16 @@
 # Change -q between “normal”/ “megamem”/ “gpuvolta”
 #PBS -q normal
 #PBS -P ll44
-#PBS -l walltime=0:30:00
-#PBS -l ncpus=4
+#PBS -l walltime=0:10:00
+#PBS -l ncpus=96
 #PBS -l ngpus=0
-#PBS -l mem=25GB
+#PBS -l mem=10GB
 #PBS -l jobfs=10GB
 
 # Change -l to desired project codes, you will need to include both project
 # code if data to run the Python script are saved in two different
 # directories
-#PBS -l storage=scratch/ll44
+#PBS -l storage=scratch/ll44+gdata/rt52
 
 # Unloads all currently loaded modules
 module purge
@@ -27,7 +27,8 @@ module load python3/3.11.7
 source /home/131/sc6160/environments/graphcast_env/bin/activate
 
 # Python script execution
-python3 /scratch/ll44/sc6160/testing.py
+# python3 /scratch/ll44/sc6160/data_merger.py
+python3 /scratch/ll44/sc6160/track_testing.py
 
 # Deactivate virtual environment after execution
 deactivate

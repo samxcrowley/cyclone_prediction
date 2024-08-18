@@ -17,15 +17,16 @@ sfc_10v = xr.open_dataset((glob(f"/g/data/rt52/era5/single-levels/reanalysis/10v
 sfc_msl = xr.open_dataset((glob(f"/g/data/rt52/era5/single-levels/reanalysis/msl/{year}/msl_era5_oper_sfc_{year}{month:02d}01-*.nc"))[0])
 # sfc_tisr = xr.open_dataset((glob(f"/g/data/rt52/era5/single-levels/reanalysis/tisr/{year}/tisr_era5_oper_sfc_{year}{month:02d}01-*.nc"))[0])
 sfc_tp = xr.open_dataset((glob(f"/g/data/rt52/era5/single-levels/reanalysis/tp/{year}/tp_era5_oper_sfc_{year}{month:02d}01-*.nc"))[0])
-sfc_z = xr.open_dataset((glob(f"/g/data/rt52/era5/single-levels/reanalysis/z/{year}/z_era5_oper_sfc_{year}{month:02d}01-*.nc"))[0])
+# sfc_z = xr.open_dataset((glob(f"/g/data/rt52/era5/single-levels/reanalysis/z/{year}/z_era5_oper_sfc_{year}{month:02d}01-*.nc"))[0])
 
 # pressure-level data
 # pl_q = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/q/{year}/q_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
 pl_t = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/t/{year}/t_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
 pl_u = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/u/{year}/u_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
 pl_v = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/v/{year}/v_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
+pl_vo = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/vo/{year}/vo_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
 # pl_w = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/w/{year}/w_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
-pl_z = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/z/{year}/z_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
+# pl_z = xr.open_dataset((glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/z/{year}/z_era5_oper_pl_{year}{month:02d}01-*.nc"))[0])
 
 sfc_2t = sfc_2t.rename({'t2m':'2m_temperature'})
 sfc_10u = sfc_10u.rename({'u10':'10m_u_component_of_wind'})
@@ -34,13 +35,14 @@ sfc_10v = sfc_10v.rename({'v10':'10m_v_component_of_wind'})
 sfc_msl = sfc_msl.rename({'msl':'mean_sea_level_pressure'})
 # sfc_tisr = sfc_tisr.rename({'tisr':'toa_incident_solar_radiation'})
 sfc_tp = sfc_tp.rename({'tp':'total_precipitation_6hr'})
-sfc_z = sfc_z.rename({'z':'geopotential_at_surface'})
+# sfc_z = sfc_z.rename({'z':'geopotential_at_surface'})
 # pl_q = pl_q.rename({'q':'specific_humidity'})
 pl_t = pl_t.rename({'t':'temperature'})
 pl_u = pl_u.rename({'u':'u_component_of_wind'})
 pl_v = pl_v.rename({'v':'v_component_of_wind'})
+pl_vo = pl_vo.rename({'vo':'relative_vorticity'})
 # pl_w = pl_w.rename({'w':'vertical_velocity'})
-pl_z = pl_z.rename({'z':'geopotential'})
+# pl_z = pl_z.rename({'z':'geopotential'})
 
 # Remove "time" from "sfc_lsm" and "sfc_z" to achieve 2D-data with (lat, lon) dimension only
 sfc_z = sfc_z.isel(time=0).drop_vars("time")
@@ -57,6 +59,7 @@ sfc_tp['total_precipitation_6hr'] = sfc_tp['total_precipitation_6hr'].expand_dim
 pl_t['temperature'] = pl_t['temperature'].expand_dims('batch', axis=0)
 pl_u['u_component_of_wind'] = pl_u['u_component_of_wind'].expand_dims('batch', axis=0)
 pl_v['v_component_of_wind'] = pl_v['v_component_of_wind'].expand_dims('batch', axis=0)
+pl_vo['relative_vorticity'] = pl_vo['relative_vorticity'].expand_dims('batch', axis=0)
 # pl_w['vertical_velocity'] = pl_w['vertical_velocity'].expand_dims('batch', axis=0)
 pl_z['geopotential'] = pl_z['geopotential'].expand_dims('batch', axis=0)
 
@@ -67,13 +70,14 @@ sfc_10v = sfc_10v['10m_v_component_of_wind'].astype('float32')
 sfc_msl = sfc_msl['mean_sea_level_pressure'].astype('float32')
 # sfc_tisr = sfc_tisr['toa_incident_solar_radiation'].astype('float32')
 sfc_tp = sfc_tp['total_precipitation_6hr'].astype('float32')
-sfc_z = sfc_z['geopotential_at_surface'].astype('float32')
+# sfc_z = sfc_z['geopotential_at_surface'].astype('float32')
 # pl_q = pl_q['specific_humidity'].astype('float32')
 pl_t = pl_t['temperature'].astype('float32')
 pl_u = pl_u['u_component_of_wind'].astype('float32')
 pl_v = pl_v['v_component_of_wind'].astype('float32')
+pl_vo = pl_vo['relative_vorticity'].astype('float32')
 # pl_w = pl_w['vertical_velocity'].astype('float32')
-pl_z = pl_z['geopotential'].astype('float32')
+# pl_z = pl_z['geopotential'].astype('float32')
 
 merged = xr.merge([sfc_2t, sfc_10u, sfc_10v, sfc_msl,
 sfc_tp, sfc_z, pl_t, pl_u, pl_v, pl_z])
@@ -104,4 +108,4 @@ merged = merged.set_coords("datetime")
 
 merged.attrs = {}
 
-merged.to_netcdf('/scratch/ll44/sc6160/data/2022-01/merged_resampled_6h_less.nc')
+merged.to_netcdf(f"/scratch/ll44/sc6160/data/{year}-{month}/merged_resampled_6h.nc")
