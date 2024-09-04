@@ -84,17 +84,20 @@ def prepare_data_dict(predictions, eval_targets, variable, lat_bounds, lon_bound
 
     return data_dict
 
-def extract_inputs_targets_forcings(example_batch, task_config):
+# def extract_inputs_targets_forcings(example_batch, task_config):
 
-    train_steps = example_batch.sizes["time"] - 2
-    eval_steps = example_batch.sizes["time"] - 2
+#     train_steps = example_batch.sizes["time"] - 2
+#     eval_steps = example_batch.sizes["time"] - 2
 
-    train_inputs, train_targets, train_forcings = g_data_utils.extract_inputs_targets_forcings(
-        example_batch, target_lead_times=slice("6h", f"{train_steps*6}h"), **dataclasses.asdict(task_config))
-    eval_inputs, eval_targets, eval_forcings = g_data_utils.extract_inputs_targets_forcings(
-        example_batch, target_lead_times=slice("6h", f"{eval_steps*6}h"), **dataclasses.asdict(task_config))
+#     print("train_steps", train_steps)
+#     print(slice("6h", f"{train_steps * 6}h"))
+
+#     train_inputs, train_targets, train_forcings = g_data_utils.extract_inputs_targets_forcings(
+#         example_batch, target_lead_times=slice("6h", f"{train_steps * 6}h"), **dataclasses.asdict(task_config))
+#     eval_inputs, eval_targets, eval_forcings = g_data_utils.extract_inputs_targets_forcings(
+#         example_batch, target_lead_times=slice("6h", f"{eval_steps * 6}h"), **dataclasses.asdict(task_config))
     
-    return train_inputs, train_targets, train_forcings, eval_inputs, eval_targets, eval_forcings
+#     return train_inputs, train_targets, train_forcings, eval_inputs, eval_targets, eval_forcings
 
 def datetime_to_timedelta(datetime, ref_time):
 
@@ -106,11 +109,10 @@ def datetime_to_timedelta(datetime, ref_time):
     return timedelta_value
 
 def timedelta_to_datetime(timedelta_obj, ref_time):
-    # If the timedelta is a numpy timedelta64 object, convert it to a Python timedelta
+
     if isinstance(timedelta_obj, np.timedelta64):
         timedelta_obj = timedelta(seconds=timedelta_obj / np.timedelta64(1, 's'))
 
-    # Add the timedelta to the reference datetime
     result_datetime = ref_time + timedelta_obj
     
     return result_datetime

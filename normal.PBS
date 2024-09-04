@@ -1,21 +1,14 @@
 #!/bin/bash
 
-# PBS Directives
 #PBS -N interactive
-
-# Change -q between “normal”/ “megamem”/ “gpuvolta”
 #PBS -q normal
 #PBS -P ll44
-#PBS -l walltime=0:10:00
-#PBS -l ncpus=96
+#PBS -l walltime=01:00:00
+#PBS -l ncpus=16
 #PBS -l ngpus=0
-#PBS -l mem=10GB
-#PBS -l jobfs=10GB
-
-# Change -l to desired project codes, you will need to include both project
-# code if data to run the Python script are saved in two different
-# directories
-#PBS -l storage=scratch/ll44+gdata/rt52
+#PBS -l mem=100GB
+#PBS -l jobfs=200GB
+#PBS -l storage=scratch/ll44
 
 # Unloads all currently loaded modules
 module purge

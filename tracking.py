@@ -9,10 +9,32 @@ import metpy.calc as mpcalc
 
 import utils
 
-def lazy_track(start_lat, start_lon, start_time, end_time):
+def calc_vort(data):
+
+    u = data['u_component_of_wind'].squeeze('batch').drop_vars(['level', 'time'])
+    v = data['v_component_of_wind'].squeeze('batch').drop_vars(['level', 'time'])
+
+    dudy, dudx = np.gradient(u, axis=(0, 1))
+    dvdy, dvdx = np.gradient(v, axis=(0, 1))
+
+    lat = data['lat']
+    lon = data['lon']
+
+    dx = np.deg2rad(lon) * utils.EARTH_RADIUS_M * np.cos(np.deg2rad(lat))
+    dy = np.deg2rad(lat) * utils.EARTH_RADIUS_M
+
+    vort = (dvdx / dx) - (dudy / dy)
+
+    return xr.DataArray(
+        vort,
+        coords=[lat, lon],
+        dims=['lat', 'lon']
+    )
+
+def lazy_track(preds, start_lat, start_lon, start_time, end_time):
 
     n_steps = int((end_time - start_time) / utils.TIME_STEP)
-    time_steps = [start_time + i * utils.TIME_STEP for i in range(n_steps)]
+    time_steps = [start_time + i * utils.TIME_STEP for i in range(1, n_steps)]
 
     current_lat, current_lon = start_lat, start_lon
     track_lats, track_lons = [], []
@@ -22,47 +44,76 @@ def lazy_track(start_lat, start_lon, start_time, end_time):
         track_lats.append(current_lat)
         track_lons.append(current_lon)
 
-        # C1: vorticity
-        vort_deg = 0.5
-        vort = utils.load_pl_var(time.year, time.month, time, 'vo') \
-                .sel(latitude=slice(current_lat + vort_deg, current_lat - vort_deg),
-                    longitude=slice(current_lon - vort_deg, current_lon + vort_deg),
-                    level=850)
+        dtime = utils.datetime_to_timedelta(time, start_time)
 
-        max_vorticity = vort.max()
-        max_vorticity_coords = vort.where(vort == max_vorticity, drop=True)
-        max_vort_loc = list(zip(max_vorticity_coords['latitude'].values, max_vorticity_coords['longitude'].values))
+        # C1: vorticity
+        vort_deg = 1
+        vort = calc_vort(preds \
+                .sel(time=dtime, method='nearest') \
+                .sel(lat=slice(current_lat - vort_deg, current_lat + vort_deg),
+                    lon=slice(current_lon - vort_deg, current_lon + vort_deg - 0.25),
+                    level=850)) \
+                .squeeze('batch')
+
+        vort_threshold = 3.5e-5
+        vort_threshold_dec = 0.1e-5
+        vort_mask = vort.where(vort >= vort_threshold, drop=True)
+
+        # if no vorticities found > threshold, decrease threshold until found
+        while vort_mask.size == 0:
+            vort_threshold -= vort_threshold_dec
+            vort_mask = vort['vo'].where(vort['vo'] >= vort_threshold, drop=True)
         
-        max_vort_lat, max_vort_lon = max_vort_loc[0]
-        max_vort_lat = float(max_vort_lat)
-        max_vort_lon = float(max_vort_lon)
+        max_vort_lats = vort_mask['latitude'].values
+        max_vort_lons = vort_mask['longitude'].values
+
+        vort_distances = [geopy.distance.distance((current_lat, current_lon), \
+                                                  (max_lat, max_lon)).km 
+                    for max_lat, max_lon in zip(max_vort_lats, max_vort_lons)]
+        vort_distance_idx = np.argmin(vort_distances)
+
+        max_vort_lat = max_vort_lats[vort_distance_idx].item()
+        max_vort_lon = max_vort_lons[vort_distance_idx].item()
 
         # C2: mslp
         mslp_deg = 4
-        mslp = utils.load_sl_var(time.year, time.month, time, 'msl') \
-                .sel(latitude=slice(max_vort_lat + mslp_deg, max_vort_lat - mslp_deg),
-                    longitude=slice(max_vort_lon - mslp_deg, max_vort_lon + mslp_deg))
-        min_mslp_loc = mslp['msl'].argmin(dim=['latitude', 'longitude'])
-        min_mslp_lat = mslp['latitude'][min_mslp_loc['latitude']]
-        min_mslp_lon = mslp['longitude'][min_mslp_loc['longitude']]
+        mslp = preds['mean_sea_level_pressure'] \
+                .sel(time=dtime, method='nearest') \
+                .sel(lat=slice(max_vort_lat - mslp_deg, max_vort_lat + mslp_deg),
+                    lon=slice(max_vort_lon - mslp_deg, max_vort_lon + mslp_deg)) \
+                .squeeze('batch')
 
-        storm_center_lat = min_mslp_lat
-        storm_center_lon = min_mslp_lon
+        # find all local minima of mslp
+        mslp_mask = (mslp == minimum_filter(mslp, size=5))
+        mslp_minima_coords = np.column_stack(np.where(mslp_mask))
+        mslp_minima_lats = mslp.lat[mslp_minima_coords[:, 0]]
+        mslp_minima_lons = mslp.lon[mslp_minima_coords[:, 1]]
+        
+        mslp_distances = [geopy.distance.distance((max_vort_lat, max_vort_lon), \
+                                                  (min_lat, min_lon)).km
+                        for min_lat, min_lon in zip(mslp_minima_lats, mslp_minima_lons)]
+
+        mslp_closest_idx = np.argmin(mslp_distances)
+
+        storm_center_lat = mslp_minima_lats[mslp_closest_idx].item()
+        storm_center_lon = mslp_minima_lons[mslp_closest_idx].item()
 
         # C3: temperature
-        temp_deg = 2
-        temp_region = utils.load_pl_var(time.year, time.month, time, 't') \
-                .sel(latitude=slice(storm_center_lat + temp_deg, storm_center_lat - temp_deg),
-                    longitude=slice(storm_center_lon - temp_deg, storm_center_lon + temp_deg),
-                    level=slice(200, 500))
-        avg_temp = temp_region.mean(dim='level')['t']
+        temp_deg = 1
+        temp = preds['temperature'] \
+                .sel(time=dtime) \
+                .sel(lat=slice(storm_center_lat - temp_deg, storm_center_lat + temp_deg),
+                    lon=slice(storm_center_lon - temp_deg, storm_center_lon + temp_deg),
+                    level=slice(200, 500)) \
+                .squeeze('batch')
+        avg_temp = temp.mean(dim='level')
         
         # find all local maxima of temp.
         temp_mask = (avg_temp == maximum_filter(avg_temp, size=5))
 
         temp_maxima_coords = np.column_stack(np.where(temp_mask))
-        temp_maxima_lats = temp_region.latitude[temp_maxima_coords[:, 0]]
-        temp_maxima_lons = temp_region.longitude[temp_maxima_coords[:, 1]]
+        temp_maxima_lats = temp.lat[temp_maxima_coords[:, 0]]
+        temp_maxima_lons = temp.lon[temp_maxima_coords[:, 1]]
 
         temp_distances = [geopy.distance.distance((storm_center_lat, storm_center_lon), \
                                                   (max_lat, max_lon)).km 
@@ -82,8 +133,8 @@ def lazy_track(start_lat, start_lon, start_time, end_time):
 
         # choose the warm-core TC closest to the first guess and within 350 km
         pred_lat, pred_lon = first_guess_w_wind(
-                            utils.load_pl_var(time.year, time.month, time, 'u')['u'],
-                            utils.load_pl_var(time.year, time.month, time, 'v')['v'],
+                            preds['u_component_of_wind'].sel(time=dtime),
+                            preds['v_component_of_wind'].sel(time=dtime),
                             current_lat, current_lon)
 
         distance_to_first_guess = np.sqrt((warm_core_lat - pred_lat) ** 2 + (warm_core_lon - pred_lon) ** 2)
@@ -96,8 +147,8 @@ def lazy_track(start_lat, start_lon, start_time, end_time):
     return track_lats, track_lons
 
 def restrict_search_region(data, start_lat, start_lon, radius_deg):
-    return data.sel(latitude=slice(start_lat + radius_deg, start_lat - radius_deg),
-                    longitude=slice(start_lon - radius_deg, start_lon + radius_deg))
+    return data.sel(lat=slice(start_lat - radius_deg, start_lat + radius_deg),
+                    lon=slice(start_lon - radius_deg, start_lon + radius_deg))
 
 def find_nearest(latitudes, longitudes, lat, lon):
     lat_idx = (np.abs(latitudes - lat)).argmin()
@@ -107,17 +158,17 @@ def find_nearest(latitudes, longitudes, lat, lon):
 def first_guess_w_wind(u_wind, v_wind, lat, lon):
 
     # extract the region around the current position
-    u_region = restrict_search_region(u_wind, lat, lon, 3)
-    v_region = restrict_search_region(v_wind, lat, lon, 3)
+    u_region = restrict_search_region(u_wind, lat, lon, 3).squeeze('batch').drop_vars('time')
+    v_region = restrict_search_region(v_wind, lat, lon, 3).squeeze('batch').drop_vars('time')
 
     # calculate deep layer steering flow (DLSF)
     wspd, u_dlsf, v_dlsf = calc_dlsf(u_region,
                                      v_region,
-                                     u_region['latitude'],
-                                     u_region['longitude'],
+                                     u_region['lat'],
+                                     u_region['lon'],
                                      u_region['level'])
 
-    ilat, ilon = find_nearest(u_region['latitude'], u_region['longitude'], lat, lon)
+    ilat, ilon = find_nearest(u_region['lat'], u_region['lon'], lat, lon)
     
     u_current = u_dlsf[ilat, ilon]
     v_current = v_dlsf[ilat, ilon]
@@ -146,8 +197,8 @@ def calc_dlsf(ulev, vlev, lat, lon, lev):
             windmean = concatenate(
                 mpcalc.mean_pressure_weighted(
                     lev * units.hPa,
-                    ulev.sel(latitude=ilat, longitude=ilon, method='nearest') * units('knot/second'), \
-                    vlev.sel(latitude=ilat, longitude=ilon, method='nearest') * units('knot/second'),
+                    ulev.sel(lat=ilat, lon=ilon, method='nearest') * units('knot/second'), \
+                    vlev.sel(lat=ilat, lon=ilon, method='nearest') * units('knot/second'),
                     bottom=850 * units.hPa, depth=200 * units.hPa)).magnitude
             
             u_dlsf[ilat, ilon] = windmean[0]
@@ -160,148 +211,3 @@ def calc_dlsf(ulev, vlev, lat, lon, lev):
 def calc_wspeed(u, v):
     wspd = np.sqrt(u*u + v*v)
     return wspd
-
-# def track_from_start_and_end(data, start_lat, start_lon, start_time, end_time, ref_time):
-
-#     n_steps = int((end_time - start_time) / utils.TIME_STEP)
-#     time_steps = [start_time + i * utils.TIME_STEP for i in range(0, n_steps)]
-    
-#     ###
-#     # for debugging:
-#     # time_steps = time_steps[0:10]
-#     # print(time_steps)
-#     ###
-
-#     track_lons = []
-#     track_lats = []
-
-#     current_lon, current_lat = start_lon, start_lat
-
-#     track_lons.append(current_lon)
-#     track_lats.append(current_lat)
-
-#     criterion_3b = False
-#     crtierion_4b = False
-    
-#     for time in time_steps:
-
-#         print(time)
-
-#         time = utils.datetime_to_timedelta(time, ref_time)
-
-#         print("Current", current_lat, current_lon)
-
-#         # criterion 1: local maximum vorticity > 3.5e-5 s^-1 at 850 hPa
-#         vort_region_deg = 3
-
-#         # vort_region = data['relative_vorticity'] \
-#         #     .sel(lat=slice(current_lat - vort_region_deg, current_lat + vort_region_deg),
-#         #          lon=slice(current_lon - vort_region_deg, current_lon + vort_region_deg))
-
-#         vort_region = data \
-#             .sel(lat=slice(current_lat - vort_region_deg, current_lat + vort_region_deg),
-#                  lon=slice(current_lon - vort_region_deg, current_lon + vort_region_deg)) \
-#             .sel(time=time, method='nearest') \
-#             .sel(level=850)
-#         vorticity = calculate_vorticity(vort_region)
-
-#         vorticity_threshold = 3.5e-5 #3.5e-5
-#         vorticity_mask = vort_region.where(vorticity > vorticity_threshold, drop=True)
-
-#         # skip if no significant vorticity found
-#         if vorticity_mask.isnull().all():
-#             print(f"No significant vorticity found at timestep {time}")
-#             continue
-
-#         max_vort_idx = vorticity_mask.argmax(dim=['lat', 'lon'])
-
-#         max_vort_lat = vorticity_mask['lat'].isel(lat=max_vort_idx['lat']).item()
-#         max_vort_lon = vorticity_mask['lon'].isel(lon=max_vort_idx['lon']).item()
-
-#         # criterion 2: identify storm center as closest local MSLP within 8° of vorticity maximum
-#         mslp_region_deg = 8
-#         mslp_region = data.sel(time=time, method='nearest') \
-#             .sel(lat=slice(max_vort_lat - mslp_region_deg, max_vort_lat + mslp_region_deg), \
-#                  lon=slice(max_vort_lon - mslp_region_deg, max_vort_lon + mslp_region_deg))
-#         mslp = mslp_region['mean_sea_level_pressure']
-
-#         # find all local minima of mslp
-#         mslp_mask = (mslp == minimum_filter(mslp, size=3))
-
-#         mslp_minima_coords = np.column_stack(np.where(mslp_mask))
-#         mslp_minima_lats = mslp_region.lat[mslp_minima_coords[:, 1]]
-#         mslp_minima_lons = mslp_region.lon[mslp_minima_coords[:, 2]]
-
-#         mslp_distances = [geopy.distance.distance((max_vort_lat, max_vort_lon), (min_lat, min_lon)).km 
-#                     for min_lat, min_lon in zip(mslp_minima_lats, mslp_minima_lons)]
-
-#         mslp_closest_idx = np.argmin(mslp_distances)
-
-#         storm_center_lat = mslp_minima_lats[mslp_closest_idx].item()
-#         storm_center_lon = mslp_minima_lons[mslp_closest_idx].item()
-
-#         # criterion 3: identify warm-core center based on 200-500 hPa average temperature within 2° of storm center
-#         temp_region_deg = 2
-#         temp_region = data.sel(time=time, method='nearest') \
-#             .sel(lat=slice(storm_center_lat - temp_region_deg, storm_center_lat + temp_region_deg), \
-#                  lon=slice(storm_center_lon - temp_region_deg, storm_center_lon + temp_region_deg), \
-#                  level=slice(200, 500))
-#         avg_temp = temp_region['temperature'].mean(dim='level')
-        
-#         # find all local maxima of temp.
-#         temp_mask = (avg_temp == maximum_filter(avg_temp, size=3))
-        
-#         temp_maxima_coords = np.column_stack(np.where(temp_mask))
-
-#         temp_maxima_lats = temp_region.lat[temp_maxima_coords[:, 1]]
-#         temp_maxima_lons = temp_region.lon[temp_maxima_coords[:, 2]]
-
-#         temp_distances = [geopy.distance.distance((storm_center_lat, storm_center_lon), \
-#                                                   (max_lat, max_lon)).km 
-#                     for max_lat, max_lon in zip(temp_maxima_lats, temp_maxima_lons)]
-
-#         temp_closest_idx = np.argmin(temp_distances)
-
-#         warm_core_lat = temp_maxima_lats[temp_closest_idx].item()
-#         warm_core_lon = temp_maxima_lons[temp_closest_idx].item()
-
-#         # criterion 4: Identify closest local maximum of 200-1000 hPa thickness within 2° of storm center
-#         # thickness = region['geopotential'].sel(level=200).sel(time=time) - data['geopotential'].sel(level=1000).sel(time=time)
-#         # thickness_anomaly = thickness - thickness.mean()
-#         # thickness_loc = thickness_anomaly.sel(lat=slice(storm_center_lat - 2, storm_center_lat + 2), \
-#         #                                       lon=slice(storm_center_lon - 2, storm_center_lon + 2)).argmax(dim=['lat', 'lon'])
-#         # thickness_lat = thickness_loc['lat'].values[0]
-#         # thickness_lon = thickness_loc['lon'].values[0]
-
-#         # Check if thickness anomaly is at least 5 meters
-#         # if thickness_anomaly.sel(lat=thickness_lat, lon=thickness_lon) < 5:
-#         #     continue  # Skip if thickness anomaly is insufficient
-
-#         # use the first guess from the steering wind and find the TC within 350 km of this guess
-#         pred_lat, pred_lon = first_guess_w_wind(data, current_lon, current_lat, time)
-
-#         print("Pred coords", pred_lat, pred_lon)
-#         print("Storm center coords", storm_center_lat, storm_center_lon)
-#         print("Warm core coords", warm_core_lat, warm_core_lon)
-
-#         warm_core_lat = storm_center_lat
-#         warm_core_lon = storm_center_lon
-
-#         # choose the warm-core TC closest to the first guess and within 350 km
-#         distance_to_first_guess = np.sqrt((warm_core_lat - pred_lat) ** 2 + (warm_core_lon - pred_lon) ** 2)
-#         if distance_to_first_guess <= 350:
-#             current_lat, current_lon = warm_core_lat, warm_core_lon
-
-#         else: # TO-DO: TC can disappear for some time
-#             print(f"First guess at time {time} was further than 350km away")
-#             break
-
-#         track_lats.append(current_lat)
-#         track_lons.append(current_lon)
-
-#         print()
-
-#     # if not criterion_3b or not crtierion_4b:
-#     #     return [], []
-    
-#     return track_lats, track_lons
