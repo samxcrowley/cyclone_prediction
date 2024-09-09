@@ -63,7 +63,7 @@ datasets = [
         path, 
         combine='by_coords',
         # chunks={'time': 48},
-        preprocess=lambda ds: ds.reindex(latitude=list(reversed(ds['latitude'])))\
+        preprocess=lambda ds: ds.reindex(latitude=list(reversed(ds['latitude']))) \
                                 # .sel(latitude=slice(utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1]), \
                                 #      longitude=slice(utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1])) \
                                 .sel(time=slice(start_time, end_time)) \
@@ -140,7 +140,6 @@ for v in pl_vars.values():
 combined_dataset['geopotential_at_surface'] = \
     combined_dataset['geopotential_at_surface'].astype('float32')
 
-
 # reorder longitude from [-180, 180] to [0, 360] (from Jonas' code)
 combined_dataset['_longitude_adjusted'] = xr.where(combined_dataset['lon'] < 0,
                 combined_dataset['lon'] + 360, combined_dataset['lon'])
@@ -150,7 +149,6 @@ combined_dataset = combined_dataset \
                 .drop_vars('lon')
 combined_dataset = combined_dataset.rename({'_longitude_adjusted': 'lon'})
 
-
 # reorder coords
 coords_order = ('lon', 'lat', 'level', 'time', 'datetime')
 
@@ -159,4 +157,5 @@ combined_dataset.attrs = {}
 
 # save dataset
 combined_dataset.to_netcdf(os.path.join(folder_path, file_name))
+
 print(f"Succesfully saved dataset {file_name}")

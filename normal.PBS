@@ -8,7 +8,7 @@
 #PBS -l ngpus=0
 #PBS -l mem=100GB
 #PBS -l jobfs=200GB
-#PBS -l storage=scratch/ll44
+#PBS -l storage=scratch/ll44+gdata/rt52
 
 # Unloads all currently loaded modules
 module purge

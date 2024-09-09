@@ -118,7 +118,7 @@ def plot_tc_track(tc_id, tc_name, tc_lons, tc_lats, aus_bounds=True):
 
     # tc_id = tc_id.decode("utf-8")
     plt.title(f"Cyclone Track for {tc_id}")
-    plt.savefig(f"/scratch/ll44/sc6160/out/plots/{tc_name}_track_plot.png", dpi=300, bbox_inches='tight')
+    plt.savefig(f"/scratch/ll44/sc6160/out/plots/tracks/{tc_name}_track_plot.png", dpi=300, bbox_inches='tight')
 
 def plot_tc_track_with_pred(tc_id, tc_name, tc_lats, tc_lons, tc_pred_lats, tc_pred_lons, aus_bounds=True):
 
@@ -143,37 +143,6 @@ def plot_tc_track_with_pred(tc_id, tc_name, tc_lats, tc_lons, tc_pred_lats, tc_p
 
     plt.title(f"Cyclone Track for {tc_id}")
     plt.savefig(f"/scratch/ll44/sc6160/out/plots/{tc_name}_track_plot.png", dpi=300, bbox_inches='tight')
-
-def plot_pred_track_with_fields(data, tc_id, tc_lat, tc_lon, track_lat, track_lon, time):
-
-    cntr2 = mp.ContourPlot()
-    cntr2.data = data
-    cntr2.field = 'msl'
-    # cntr2.time = time
-    cntr2.contours = np.arange(900, 1100, 2).tolist()
-    cntr2.linecolor = 'black'
-    cntr2.linestyle = 'solid'
-    cntr2.label_fontsize = 15
-    cntr2.clabels = True
-    cntr2.plot_units = 'hPa' # Change from Pa to hPa
-    cntr2.mpl_args = {'alpha': 0.7}
-
-    panel = mp.MapPanel()
-    panel.area = [105, 160, -50, 0] # Boundary of Australia
-    panel.layers = ['states', 'coastline', 'borders']
-    panel.title = f'UTC {time}'
-    panel.title_fontsize = 30
-    panel.plots = [cntr2]
-
-    pc = mp.PanelContainer()
-    pc.size = (15, 15)
-    pc.panels = [panel]
-
-    # panel.ax.plot(tc_lon, tc_lat, marker='X', color='red', markersize=15, transform=ccrs.PlateCarree())
-
-    panel.ax.plot(track_lon, track_lat, marker='X', color='blue', markersize=15, transform=ccrs.PlateCarree())
-
-    pc.save(f"/scratch/ll44/sc6160/out/plots/metpy_tracking/{tc_id}_{time.strftime('%Y%m%d%H')}.png")
 
 def plot_density_map(tracks):
 
@@ -219,9 +188,6 @@ def plot_density_map(tracks):
     plt.colorbar(pcm, ax=ax, orientation='vertical', label='Density')
     plt.title('Tropical Cyclone Density Map')
     plt.savefig("/scratch/ll44/sc6160/out/plots/density.png", dpi=300, bbox_inches='tight')
-
-
-
 
 def impact_factor(r, ri):
     if r > ri:

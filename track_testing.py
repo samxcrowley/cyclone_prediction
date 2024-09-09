@@ -19,22 +19,22 @@ preds = xr.open_dataset(pred_file_path)
 # tc_end_time = datetime(2022, 4, 12, 0, 0, 0)
 
 tcs = {
-        # 'charlotte':
-        #     {'id': '2022076S10126',
-        #     'start': datetime(2022, 3, 19, 6),
-        #     'end': datetime(2022, 3, 25, 18)},
-        # 'tiffany':
-        #     {'id': '2022008S13148',
-        #      'start': datetime(2022, 1, 8, 0, 0, 0),
-        #      'end': datetime(2022, 1, 17, 6, 0, 0)},
+        'charlotte':
+            {'id': '2022076S10126',
+            'start': datetime(2022, 3, 19, 6),
+            'end': datetime(2022, 3, 25, 18)},
+        'tiffany':
+            {'id': '2022008S13148',
+             'start': datetime(2022, 1, 8, 0, 0, 0),
+             'end': datetime(2022, 1, 17, 6, 0, 0)},
         'ilsa':
             {'id': '2023096S08133',
              'start': datetime(2023, 4, 6, 0, 0, 0),
-             'end': datetime(2023, 4, 15, 12, 0, 0)},
-        # 'olga':
-        #     {'id': '2024097S13119',
-        #      'start': datetime(2024, 4, 4, 18, 0, 0),
-        #      'end': datetime(2024, 4, 12, 0, 0, 0)}
+             'end': datetime(2023, 4, 17, 0, 0, 0)},
+        'olga':
+            {'id': '2024097S13119',
+             'start': datetime(2024, 4, 4, 18, 0, 0),
+             'end': datetime(2024, 4, 12, 0, 0, 0)}
 }
 
 for tc_name, data in tcs.items():
@@ -50,11 +50,11 @@ for tc_name, data in tcs.items():
     tc_lons = tc_data['lon']
     tc_lons_np = tc_lons.values[0]
 
-    tc_start_lat = tc_lats_np[1]
-    tc_start_lon = tc_lons_np[1]
+    tc_start_lat = tc_lats_np[0]
+    tc_start_lon = tc_lons_np[0]
 
-    track_lats, track_lons = tracking.lazy_track(preds, tc_start_lat, tc_start_lon, tc_start_time, tc_end_time)
-    plotting.plot_tc_track_with_pred(tc_id, f"{tc_name}_lazy", tc_lats, tc_lons, track_lats, track_lons)
+    track_lats, track_lons = tracking.old_track(tc_start_lat, tc_start_lon, tc_start_time, tc_end_time)
+    plotting.plot_tc_track_with_pred(tc_id, f"{tc_name}_old", tc_lats, tc_lons, track_lats, track_lons)
 
-    # track_lats, track_lons = tracking.gc_track(tc_start_lat, tc_start_lon, tc_start_time, tc_end_time)
+    # track_lats, track_lons = tracking.gc_track(preds, tc_start_lat, tc_start_lon, tc_start_time, tc_end_time)
     # plotting.plot_tc_track_with_pred(tc_id, f"{tc_name}_gc", tc_lats, tc_lons, track_lats, track_lons)
