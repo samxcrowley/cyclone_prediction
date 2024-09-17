@@ -6,19 +6,41 @@ from glob import glob
 
 import utils
 
-# TC Ilsa
-year = 2023
-month = 4
-start_time = datetime(2023, 4, 5, 6, 0, 0)
-end_time = datetime(2023, 4, 15, 18, 0, 0)
+# TC Olga
+# year = 2024
+# month = 4
+# start_day = 4
+# end_day = 12
 
+# TC Tiffany
+year = 2022
+month = 1
+start_day = 8
+end_day = 17
+
+# TC Charlotte
 # year = 2022
+# month = 3
+# start_day = 19
+# end_day = 25
+
+# TC Ilsa
+# year = 2023
+# month = 4
+# start_day = 6
+# end_day = 16
+
+# TC Imogen
+# year = 2021
 # month = 1
-# start_time = datetime(year, month, 1, 0, 0, 0)
-# end_time = datetime(year, month, 2, 12, 0, 0)
+# start_day = 1
+# end_day = 6
+
+start_time = datetime(year, month, start_day)
+end_time = datetime(year, month, end_day)
 
 folder_path = f"/scratch/ll44/sc6160/data/{year}-{month:02d}"
-file_name = f"source-era5_data-{year}-{month}_res-0.25_levels-37_tc-ilsa.nc"
+file_name = f"source-era5_data-{year}-{month}_res-0.25_levels-37.nc"
 os.makedirs(folder_path, exist_ok=True)
 
 # surface level variables
@@ -29,7 +51,6 @@ sl_vars = {
     'lsm': 'land_sea_mask',
     'tisr': 'toa_incident_solar_radiation',
     'msl': 'mean_sea_level_pressure',
-    # 'z': 'geopotential_at_surface',
     'tp': 'total_precipitation_6hr'
 }
 
@@ -62,7 +83,7 @@ datasets = [
     xr.open_mfdataset(
         path, 
         combine='by_coords',
-        # chunks={'time': 48},
+        chunks={'time': 1, 'lat': 90, 'lon': 180},
         preprocess=lambda ds: ds.reindex(latitude=list(reversed(ds['latitude']))) \
                                 # .sel(latitude=slice(utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1]), \
                                 #      longitude=slice(utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1])) \
@@ -76,7 +97,7 @@ z_surface = z_surface.reindex(latitude=list(reversed(z_surface['latitude'])))
 z_surface = z_surface \
                     .sel(time=slice(start_time, end_time)) \
                     .resample(time='6h').nearest() \
-                    .rename({'z': 'geopotential_at_surface'})
+                    .rename({'z': 'geopotential_at_surface'}) \
                     # .sel(latitude=slice(utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1]), \
                     #      longitude=slice(utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1])) \
 
@@ -155,7 +176,17 @@ coords_order = ('lon', 'lat', 'level', 'time', 'datetime')
 # remove attribute data
 combined_dataset.attrs = {}
 
+# compression
+compression_settings = {
+    'zlib': True,
+    'complevel': 5 # recommended comp. level from http://climate-cms.wikis.unsw.edu.au/NetCDF_Compression_Tools
+}
+encoding = {
+    var: compression_settings for var in combined_dataset.data_vars
+}
+
 # save dataset
 combined_dataset.to_netcdf(os.path.join(folder_path, file_name))
+# combined_dataset.to_netcdf(os.path.join(folder_path, f"comp_{file_name}"), encoding=encoding)
 
 print(f"Succesfully saved dataset {file_name}")

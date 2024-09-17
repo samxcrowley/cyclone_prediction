@@ -16,9 +16,9 @@ def main():
 
     model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
     
-    year = 2023
+    year = 2024
     month = 4
-    dataset_path = "/scratch/ll44/sc6160/data/2023-04/source-era5_data-2023-4_res-0.25_levels-37_tc-ilsa.nc"
+    dataset_path = "/scratch/ll44/sc6160/data/2024-04/source-era5_data-2024-4_res-0.25_levels-37.nc"
 
     # load model
     params, model_config, task_config = model.load_model_from_cache(model_path)
@@ -51,16 +51,16 @@ def main():
     preds = prediction.run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings)
 
     # save data
-    preds.to_netcdf(f"/scratch/ll44/sc6160/out/preds_ilsa.nc")
-    eval_targets.to_netcdf(f"/scratch/ll44/sc6160/out/evals_ilsa.nc")
+    preds.to_netcdf(f"/scratch/ll44/sc6160/out/preds_olga.nc")
+    eval_targets.to_netcdf(f"/scratch/ll44/sc6160/out/evals_olga.nc")
 
     # plot metrics
-    metrics = {
-        '2m_temperature': "ilsa_temp_",
-        'mean_sea_level_pressure': "ilsa_mslp_",
-        'total_precipitation_6hr': "ilsa_prec_"
-    }
-    plotting.plot_metrics(preds, eval_targets, metrics, utils.AUS_LAT_BOUNDS, utils.AUS_LON_BOUNDS)
+    # metrics = {
+    #     '2m_temperature': "ilsa_temp_",
+    #     'mean_sea_level_pressure': "ilsa_mslp_",
+    #     'total_precipitation_6hr': "ilsa_prec_"
+    # }
+    # plotting.plot_metrics(preds, eval_targets, metrics, utils.AUS_LAT_BOUNDS, utils.AUS_LON_BOUNDS)
 
 if __name__ == "__main__":
     main()

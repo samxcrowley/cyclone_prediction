@@ -6,12 +6,13 @@ import xarray as xr
 # KARIM: 2022127S07088
 # DOVI: 2022038S19164
 # KIRRILY: 2024017S15151
-# CHARLOTTE (Mar 2022): 2022076S10126
+# CHARLOTTE: 2022076S10126
 # SETH: 2021358S09130
+# IMOGEN: 2021001S14136
 
-ibtracs = xr.open_dataset("/scratch/ll44/sc6160/data/IBTrACS/IBTrACS.last3years.v04r01.nc")
+ibtracs = xr.open_dataset("/scratch/ll44/sc6160/data/IBTrACS/IBTrACS.ALL.v04r01.nc")
 
-tc_name = "ILSA"
+tc_name = "OLGA"
 
 matching_ids = []
 
@@ -24,4 +25,4 @@ for i in range(ibtracs.sizes["storm"]):
     if name == tc_name:
         matching_ids.append(sid)
 
-print(matching_ids[0])
+print(matching_ids)

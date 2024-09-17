@@ -7,5 +7,7 @@ import numpy as np
 
 import plotting, utils
 
-preds = xr.open_dataset("/scratch/ll44/sc6160/data/2023-04/source-era5_data-2023-4_res-0.25_levels-37_tc-ilsa.nc")
-print(preds)
+# TC Olga
+obs = xr.open_dataset("/scratch/ll44/sc6160/data/2024-04/source-era5_data-2024-4_res-0.25_levels-37.nc")
+pred = xr.open_dataset("/scratch/ll44/sc6160/out/preds_olga.nc")
+

@@ -13,26 +13,6 @@ EARTH_RADIUS_KM = 6371.0
 EARTH_RADIUS_M = 6371000
 TIME_STEP = timedelta(hours=6)
 
-def load_sl_var(year, month, time, var):
-
-    data = xarray.open_dataset(glob(f"/g/data/rt52/era5/single-levels/reanalysis/{var}/{year}/{var}_era5_oper_sfc_{year}{month:02d}01-*.nc")[0]) \
-                    .sel(latitude=slice(AUS_LAT_BOUNDS[1], AUS_LAT_BOUNDS[0]), \
-                        longitude=slice(AUS_LON_BOUNDS[0], AUS_LON_BOUNDS[1])) \
-                    .resample(time='6h').nearest() \
-                    .sel(time=time, method='nearest')
-    
-    return data
-
-def load_pl_var(year, month, time, var):
-
-    data = xarray.open_dataset(glob(f"/g/data/rt52/era5/pressure-levels/reanalysis/{var}/{year}/{var}_era5_oper_pl_{year}{month:02d}01-*.nc")[0]) \
-                    .sel(latitude=slice(AUS_LAT_BOUNDS[1], AUS_LAT_BOUNDS[0]), \
-                        longitude=slice(AUS_LON_BOUNDS[0], AUS_LON_BOUNDS[1])) \
-                    .resample(time='6h').nearest() \
-                    .sel(time=time, method='nearest')
-    
-    return data
-
 def parse_file_parts(file_name):
     parts = {}
     for part in file_name.split("/")[-1].split("_"):

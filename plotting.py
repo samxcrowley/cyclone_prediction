@@ -4,6 +4,7 @@ import numpy as np
 import xarray, matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import animation
+import matplotlib.colors as mcolors
 import metpy.plots as mp
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -120,7 +121,11 @@ def plot_tc_track(tc_id, tc_name, tc_lons, tc_lats, aus_bounds=True):
     plt.title(f"Cyclone Track for {tc_id}")
     plt.savefig(f"/scratch/ll44/sc6160/out/plots/tracks/{tc_name}_track_plot.png", dpi=300, bbox_inches='tight')
 
-def plot_tc_track_with_pred(tc_id, tc_name, tc_lats, tc_lons, tc_pred_lats, tc_pred_lons, aus_bounds=True):
+def plot_tc_track_with_pred(
+        tc_id, tc_name,
+        tc_lats, tc_lons, tc_start_time, tc_end_time,
+        tc_pred_lats, tc_pred_lons, tc_pred_start_time, tc_pred_end_time,
+        aus_bounds=True):
 
     # create a new figure with a specific size and projection
     plt.figure(figsize=(10, 8))
@@ -141,12 +146,29 @@ def plot_tc_track_with_pred(tc_id, tc_name, tc_lats, tc_lons, tc_pred_lats, tc_p
     ax.plot(tc_lons, tc_lats, marker='o', color='blue', markersize=5, linestyle='-', linewidth=2, transform=ccrs.PlateCarree())
     ax.plot(tc_pred_lons, tc_pred_lats, marker='o', color='red', markersize=5, linestyle='-', linewidth=2, transform=ccrs.PlateCarree())
 
+    # annotate the start and end timestamps for actual track
+    tc_start_lon = tc_lons[0]
+    tc_start_lat = tc_lats[0]
+    tc_end_lon = tc_lons[-1]
+    tc_end_lat = tc_lats[-1]
+
+    if np.isfinite(tc_start_lon) and np.isfinite(tc_start_lat):
+        ax.text(tc_start_lon, tc_start_lat, f'{tc_start_time}', color='blue', fontsize=10, transform=ccrs.PlateCarree())
+    if np.isfinite(tc_end_lon) and np.isfinite(tc_end_lat):
+        ax.text(tc_end_lon, tc_end_lat, f'{tc_end_time}', color='blue', fontsize=10, transform=ccrs.PlateCarree())
+
+    offset = 2
+
+    # annotate the start and end timestamps for predicted track
+    ax.text(tc_pred_lons[0], tc_pred_lats[0] + offset, f'{tc_pred_start_time}', color='black', fontsize=10, transform=ccrs.PlateCarree())
+    ax.text(tc_pred_lons[-1], tc_pred_lats[-1] + offset, f'{tc_pred_end_time}', color='black', fontsize=10, transform=ccrs.PlateCarree())
+
     plt.title(f"Cyclone Track for {tc_id}")
     plt.savefig(f"/scratch/ll44/sc6160/out/plots/{tc_name}_track_plot.png", dpi=300, bbox_inches='tight')
 
-def plot_density_map(tracks):
+def plot_density_map(tracks, title, filename):
 
-    grid_res = 0.25
+    grid_res = 0.1
     ri = 300
 
     lats = np.arange(utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1], grid_res)
@@ -167,12 +189,11 @@ def plot_density_map(tracks):
             for i, grid_lat in enumerate(lats):
                 for j, grid_lon in enumerate(lons):
 
-                    # double check calc.
-                    r = geodesic((lat, lon), (grid_lat, grid_lon)).km
+                    mid_lat = grid_lat + (grid_res / 2)
+                    mid_lon = grid_lon + (grid_res / 2)
+
+                    r = geodesic((lat, lon), (mid_lat, mid_lon)).km
                     density[i, j] += impact_factor(r, ri)
-
-                    # center of grid squares
-
 
     plt.figure(figsize=(10, 8))
     ax = plt.axes(projection=ccrs.PlateCarree())
@@ -186,8 +207,79 @@ def plot_density_map(tracks):
     ax.set_extent(utils.AUS_LON_BOUNDS + utils.AUS_LAT_BOUNDS, crs=ccrs.PlateCarree())
 
     plt.colorbar(pcm, ax=ax, orientation='vertical', label='Density')
-    plt.title('Tropical Cyclone Density Map')
-    plt.savefig("/scratch/ll44/sc6160/out/plots/density.png", dpi=300, bbox_inches='tight')
+    plt.title(title)
+    plt.savefig(f"/scratch/ll44/sc6160/out/plots/{filename}.png", dpi=300, bbox_inches='tight')
+
+
+# plots the fields of MSLP of a dataset
+# TC tracks must line up with the times of the dataset
+def plot_mslp_field(obs_data, pred_data, obs_track_lats, obs_track_lons, pred_track_lats, pred_track_lons):
+
+    obs_mslp = obs_data['mean_sea_level_pressure']
+    gc_mslp = pred_data['mean_sea_level_pressure']
+    projection = ccrs.PlateCarree()
+    timesteps = len(obs_mslp['time'])
+    
+    # timesteps = 1
+
+    mslp_min = 950
+    mslp_max = 1050
+
+    for t in range(timesteps):
+
+        fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 6), subplot_kw={'projection': ccrs.PlateCarree()})
+        
+        ax_obs, ax_pred = axes
+
+        # OBS plot
+        ax_obs.add_feature(cfeature.COASTLINE)
+        ax_obs.add_feature(cfeature.BORDERS)
+        ax_obs.set_extent([utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1],
+                       utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1]], crs=ccrs.PlateCarree())
+
+        obs_mslp_timestep = obs_mslp.isel(time=t).drop_vars('time').squeeze('batch')
+
+        cs_obs = ax_obs.contour(obs_mslp_timestep['lon'].values,
+                        obs_mslp_timestep['lat'].values, 
+                        obs_mslp_timestep.values / 100.0, # Pa -> hPa
+                        levels=np.arange(mslp_min, mslp_max, 2),
+                        colors='black',
+                        linewidths=0.5,
+                        transform=projection)
+        ax_obs.clabel(cs_obs, inline=True, fontsize=10, fmt='%1.0f hPa')
+        ax_obs.legend()
+        ax_obs.set_title(f'Observed MSLP at Timestep {t}')
+
+        # GC plot
+        ax_pred.add_feature(cfeature.COASTLINE)
+        ax_pred.add_feature(cfeature.BORDERS)
+        ax_pred.set_extent([utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1],
+                       utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1]], crs=ccrs.PlateCarree())
+
+        gc_mslp_timestep = gc_mslp.isel(time=t).drop_vars('time').squeeze('batch')
+
+        cs_pred = ax_pred.contour(gc_mslp_timestep['lon'].values,
+                        gc_mslp_timestep['lat'].values, 
+                        gc_mslp_timestep.values / 100.0, # Pa -> hPa
+                        levels=np.arange(mslp_min, mslp_max, 2),
+                        colors='black',
+                        linewidths=0.5,
+                        transform=projection)
+        ax_pred.clabel(cs_pred, inline=True, fontsize=10, fmt='%1.0f hPa')
+        ax_pred.legend()
+        ax_pred.set_title(f'Predicted MSLP at Timestep {t}')
+
+        # plot tracks
+        ax_pred.plot(pred_track_lons, pred_track_lats, color='red', alpha=0.5, label='Full Predicted Track')
+        ax_obs.plot(obs_track_lons, obs_track_lats, color='blue', alpha=0.5, label='Full Observed Track')
+
+        # plot this timestep's track location
+        if t < len(pred_track_lats) or t < len(obs_track_lats):
+            ax_pred.plot(pred_track_lons[t], pred_track_lats[t], marker='o', color='red', markersize=8, label='Predicted Track')
+            ax_obs.plot(obs_track_lons[t], obs_track_lats[t], marker='o', color='blue', markersize=8, label='Observed Track')
+
+        plt.tight_layout(rect=[0, 0, 1, 0.96])
+        plt.savefig(f"/scratch/ll44/sc6160/out/plots/fields/olga/gc/{t}.png")
 
 def impact_factor(r, ri):
     if r > ri:
