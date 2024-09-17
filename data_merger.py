@@ -6,41 +6,12 @@ from glob import glob
 
 import utils
 
-# TC Olga
-# year = 2024
-# month = 4
-# start_day = 4
-# end_day = 12
+tc_name, tc_id, start_time, end_time = utils.load_tc_data()
+year = start_time.year
+month = start_time.month
 
-# TC Tiffany
-year = 2022
-month = 1
-start_day = 8
-end_day = 17
-
-# TC Charlotte
-# year = 2022
-# month = 3
-# start_day = 19
-# end_day = 25
-
-# TC Ilsa
-# year = 2023
-# month = 4
-# start_day = 6
-# end_day = 16
-
-# TC Imogen
-# year = 2021
-# month = 1
-# start_day = 1
-# end_day = 6
-
-start_time = datetime(year, month, start_day)
-end_time = datetime(year, month, end_day)
-
-folder_path = f"/scratch/ll44/sc6160/data/{year}-{month:02d}"
-file_name = f"source-era5_data-{year}-{month}_res-0.25_levels-37.nc"
+folder_path = f"/scratch/ll44/sc6160/data/obs/"
+file_name = f"{tc_name}_{tc_id}_obs_data.nc"
 os.makedirs(folder_path, exist_ok=True)
 
 # surface level variables
@@ -83,10 +54,8 @@ datasets = [
     xr.open_mfdataset(
         path, 
         combine='by_coords',
-        chunks={'time': 1, 'lat': 90, 'lon': 180},
+        # chunks={'time': 1, 'lat': 90, 'lon': 180},
         preprocess=lambda ds: ds.reindex(latitude=list(reversed(ds['latitude']))) \
-                                # .sel(latitude=slice(utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1]), \
-                                #      longitude=slice(utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1])) \
                                 .sel(time=slice(start_time, end_time)) \
                                 .resample(time='6h').nearest())
     for path in paths
@@ -98,8 +67,6 @@ z_surface = z_surface \
                     .sel(time=slice(start_time, end_time)) \
                     .resample(time='6h').nearest() \
                     .rename({'z': 'geopotential_at_surface'}) \
-                    # .sel(latitude=slice(utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1]), \
-                    #      longitude=slice(utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1])) \
 
 datasets.append(z_surface)
 
@@ -189,4 +156,4 @@ encoding = {
 combined_dataset.to_netcdf(os.path.join(folder_path, file_name))
 # combined_dataset.to_netcdf(os.path.join(folder_path, f"comp_{file_name}"), encoding=encoding)
 
-print(f"Succesfully saved dataset {file_name}")
+print(f"Succesfully saved dataset {os.path.join(folder_path, file_name)}")

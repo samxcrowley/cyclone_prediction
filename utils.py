@@ -1,4 +1,5 @@
 from typing import Optional
+import json
 import dataclasses
 from datetime import datetime, timedelta
 import xarray
@@ -96,3 +97,13 @@ def timedelta_to_datetime(timedelta_obj, ref_time):
     result_datetime = ref_time + timedelta_obj
     
     return result_datetime
+
+def load_tc_data(data_file="current_tc.json"):
+
+    with open(data_file, 'r') as f:
+        tc_data = json.load(f)
+
+    tc_data['start_time'] = datetime.fromisoformat(tc_data['start_time'])
+    tc_data['end_time'] = datetime.fromisoformat(tc_data['end_time'])
+
+    return tc_data['tc_name'], tc_data['tc_id'], tc_data['start_time'], tc_data['end_time']

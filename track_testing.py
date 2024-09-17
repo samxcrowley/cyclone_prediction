@@ -7,7 +7,7 @@ import pandas as pd
 
 import plotting
 import utils
-import tracking, old_tracking
+import tracking as tracking, old_tracking
 
 ibtracs = xr.open_dataset("/scratch/ll44/sc6160/data/IBTrACS/IBTrACS.ALL.v04r01.nc")
 

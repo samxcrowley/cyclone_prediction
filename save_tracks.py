@@ -5,21 +5,16 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
-import utils, tracking
+import utils, tracking as tracking
 
-# change the below fields for each TC
+tc_name, tc_id, start_time, end_time = utils.load_tc_data()
+
 ibtracs = xr.open_dataset("/scratch/ll44/sc6160/data/IBTrACS/IBTrACS.ALL.v04r01.nc")
-obs = xr.open_dataset("/scratch/ll44/sc6160/data/2023-04/source-era5_data-2023-4_res-0.25_levels-37_tc-ilsa.nc") \
-        .isel(time=slice(1, -1))
-preds = xr.open_dataset("/scratch/ll44/sc6160/out/preds_ilsa.nc")
-
-tc_name = "ilsa"
-tc_id = "2023096S08133".encode("utf-8")
-tc_start_time = datetime(2023, 4, 6, 6, 0, 0)
-tc_end_time = datetime(2023, 4, 17, 0, 0, 0)
+obs = xr.open_dataset(f"/scratch/ll44/sc6160/data/obs/{tc_name}_{tc_id}_obs_data.nc")
+preds = xr.open_dataset(f"/scratch/ll44/sc6160/out/{tc_name}_{tc_id}_pred_data.nc")
 
 # IBTrACS track
-tc_data = ibtracs.where(ibtracs['sid'] == tc_id, drop=True)
+tc_data = ibtracs.where(ibtracs['sid'] == tc_id.encode('utf-8'), drop=True)
 tc_lats = tc_data['lat'].values[0]
 tc_lats = tc_lats[~np.isnan(tc_lats)]
 tc_lons = tc_data['lon'].values[0]
@@ -28,10 +23,10 @@ tc_start_lat = tc_lats[0]
 tc_start_lon = tc_lons[0]
 
 # OBS track
-obs_track_lats, obs_track_lons, _ = tracking.gc_track(obs, tc_start_lat, tc_start_lon, tc_start_time)
+obs_track_lats, obs_track_lons, _ = tracking.gc_track(obs, tc_start_lat, tc_start_lon, start_time)
 
 # GC track
-gc_track_lats, gc_track_lons, _ = tracking.gc_track(preds, tc_start_lat, tc_start_lon, tc_start_time)
+gc_track_lats, gc_track_lons, _ = tracking.gc_track(preds, tc_start_lat, tc_start_lon, start_time)
 
 # save lists in dataset
 lists = [tc_lats, tc_lons, obs_track_lats, obs_track_lons, gc_track_lats, gc_track_lons]
@@ -47,4 +42,4 @@ ds = xr.Dataset(
     }
 )
 
-ds.to_netcdf(f"/scratch/ll44/sc6160/out/tracks/{tc_name}.nc")
+ds.to_netcdf(f"/scratch/ll44/sc6160/out/tracks/{tc_name}_{tc_id}_tracks.nc")

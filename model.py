@@ -2,9 +2,7 @@ import functools
 import haiku as hk
 import xarray
 import jax
-
-from graphcast import autoregressive, casting, checkpoint, \
-    graphcast, normalization, xarray_tree, xarray_jax
+from graphcast import autoregressive, casting, checkpoint, graphcast, normalization, xarray_tree, xarray_jax
 
 import utils
 

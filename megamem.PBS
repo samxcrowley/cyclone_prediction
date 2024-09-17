@@ -1,9 +1,6 @@
 #!/bin/bash
 
-# PBS Directives
 #PBS -N interactive
-
-# Change -q between “normal”/ “megamem”/ “gpuvolta”
 #PBS -q megamem
 #PBS -P ll44
 #PBS -l walltime=12:00:00

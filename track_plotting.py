@@ -11,8 +11,8 @@ from geopy.distance import geodesic
 
 import plotting, utils
 
-tc_name = "ilsa"
-ds = xr.open_dataset(f"/scratch/ll44/sc6160/out/tracks/{tc_name}.nc")
+tc_name, tc_id, start_time, end_time = utils.load_tc_data()
+ds = xr.open_dataset(f"/scratch/ll44/sc6160/out/tracks/{tc_name}_{tc_id}_tracks.nc")
 
 def plot_track(ax, lons, lats, color, title):
     ax.add_feature(cfeature.COASTLINE)
@@ -44,4 +44,4 @@ plot_track(ax_pred,
            'red',
            'Track w/ GC predicted data')
 
-plt.savefig(f"/scratch/ll44/sc6160/out/plots/tracks/comparisons/{tc_name}_comparison.png")
+plt.savefig(f"/scratch/ll44/sc6160/out/plots/tracks/comparisons/{tc_name}_{tc_id}_track_comparison.png")
