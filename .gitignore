@@ -3,6 +3,6 @@ model/
 out/
 old/
 data/
-test_data/
 tmp/
-interactive.*
+*.e*
+*.o*
