@@ -1,4 +1,4 @@
-import os
+import os, sys
 import model
 import utils
 import plotting
@@ -16,8 +16,9 @@ def main():
 
     model_path = "/scratch/ll44/sc6160/model/params_GraphCast - ERA5 1979-2017 - resolution 0.25 - pressure levels 37 - mesh 2to6 - precipitation input and output.npz"
     
-    tc_name, tc_id, _, _ = utils.load_tc_data()
-    dataset_path = f"/scratch/ll44/sc6160/data/obs/{tc_name}_{tc_id}_obs_data.nc"
+    tc_file = sys.argv[1]
+    tc_name, tc_id, start_time, end_time, tc_dir = utils.load_tc_data(tc_file)
+    dataset_path = f"/scratch/{tc_dir}/sc6160/data/obs/{tc_name}_{tc_id}_obs_data.nc"
 
     # load model
     params, model_config, task_config = model.load_model_from_cache(model_path)
@@ -50,10 +51,11 @@ def main():
     preds = run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings)
 
     # save data
-    folder_path = f"/scratch/ll44/sc6160/out/pred/"
+    # folder_path = f"/scratch/ll44/sc6160/out/pred/"
+    folder_path = f"/scratch/x77/sc6160/out/pred/"
     os.makedirs(folder_path, exist_ok=True)
     preds.to_netcdf(os.path.join(folder_path, f"{tc_name}_{tc_id}_pred_data.nc"))
-    eval_targets.to_netcdf(os.path.join(folder_path, f"{tc_name}_{tc_id}_eval_data.nc"))
+    # eval_targets.to_netcdf(os.path.join(folder_path, f"{tc_name}_{tc_id}_eval_data.nc"))
 
 def run_predictions(run_forward_jitted, eval_inputs, eval_targets, eval_forcings):
     

@@ -1,4 +1,4 @@
-import os
+import os, sys
 from datetime import datetime
 
 import xarray as xr
@@ -6,11 +6,12 @@ from glob import glob
 
 import utils
 
-tc_name, tc_id, start_time, end_time = utils.load_tc_data()
+tc_file = sys.argv[1]
+tc_name, tc_id, start_time, end_time, tc_dir = utils.load_tc_data(tc_file)
 year = start_time.year
 month = start_time.month
 
-folder_path = f"/scratch/ll44/sc6160/data/obs/"
+folder_path = f"/scratch/{tc_dir}/sc6160/data/obs/"
 file_name = f"{tc_name}_{tc_id}_obs_data.nc"
 os.makedirs(folder_path, exist_ok=True)
 

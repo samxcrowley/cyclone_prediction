@@ -1,0 +1,24 @@
+#!/bin/bash
+
+#PBS -N anggrek
+#PBS -q gpuvolta
+#PBS -P ll44
+#PBS -l walltime=04:00:00
+#PBS -l ncpus=12
+#PBS -l ngpus=1
+#PBS -l mem=200GB
+#PBS -l jobfs=100GB
+#PBS -l storage=scratch/ll44+scratch/x77+gdata/rt52
+
+module purge
+module load python3/3.11.7
+source /home/131/sc6160/environments/graphcast_env/bin/activate
+# module use /g/data/dk92/apps/Modules/modulefiles/
+# module load rapids/22.02
+
+TC_NAME="/scratch/ll44/sc6160/tc_data/Anggrek.json"
+
+python3 /scratch/ll44/sc6160/data_merger.py "$TC_NAME"
+python3 /scratch/ll44/sc6160/prediction.py "$TC_NAME"
+
+deactivate

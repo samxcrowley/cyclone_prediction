@@ -1,6 +1,7 @@
 __pycache__/
 model/
 out/
+old/
 data/
 test_data/
 tmp/

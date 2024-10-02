@@ -1,4 +1,5 @@
 import xarray as xr
+import sys
 
 # TIFFANY: 2022008S13148
 # VERNON: 2022054S13100
@@ -12,7 +13,7 @@ import xarray as xr
 
 ibtracs = xr.open_dataset("/scratch/ll44/sc6160/data/IBTrACS/IBTrACS.ALL.v04r01.nc")
 
-tc_name = "OLGA"
+tc_name = sys.argv[1]
 
 matching_ids = []
 

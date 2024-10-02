@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 import json
 import dataclasses
@@ -8,11 +9,26 @@ from glob import glob
 
 from graphcast import data_utils as g_data_utils
 
-AUS_LON_BOUNDS = [100, 160]
+AUS_LON_BOUNDS = [100, 175]
 AUS_LAT_BOUNDS = [-50, 0]
 EARTH_RADIUS_KM = 6371.0
 EARTH_RADIUS_M = 6371000
 TIME_STEP = timedelta(hours=6)
+
+IBT_V_COLOUR = 'purple'
+IBT_COLOUR = 'green'
+OBS_COLOUR = 'blue'
+PRED_COLOUR = 'red'
+
+def ms_to_knots(ms):
+    return ms * 1.94384
+def knots_to_ms(knots):
+    return knots / 1.94384
+
+def impact_factor(r, ri):
+    if r > ri:
+        return 0
+    return 1 - (r / ri)
 
 def parse_file_parts(file_name):
     parts = {}
@@ -98,12 +114,24 @@ def timedelta_to_datetime(timedelta_obj, ref_time):
     
     return result_datetime
 
-def load_tc_data(data_file="current_tc.json"):
+def load_tc_data(tc_file):
 
-    with open(data_file, 'r') as f:
-        tc_data = json.load(f)
+    tc_data = {}
+
+    try:
+        with open(tc_file, 'r') as f:
+            tc_data = json.load(f)
+    except:
+        print(f"No file {tc_file}")
+        return None
 
     tc_data['start_time'] = datetime.fromisoformat(tc_data['start_time'])
     tc_data['end_time'] = datetime.fromisoformat(tc_data['end_time'])
 
-    return tc_data['tc_name'], tc_data['tc_id'], tc_data['start_time'], tc_data['end_time']
+    return tc_data['tc_name'], tc_data['tc_id'], tc_data['start_time'], tc_data['end_time'], tc_data['dir']
+
+def get_all_tc_names():
+
+    all_files = os.listdir("/scratch/ll44/sc6160/tc_data")
+    tc_names = [f[:-5] for f in all_files if f.endswith('.json')]
+    return tc_names

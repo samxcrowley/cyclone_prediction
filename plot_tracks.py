@@ -1,3 +1,4 @@
+import sys
 import xarray as xr
 import numpy as np
 import matplotlib
@@ -9,10 +10,17 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from geopy.distance import geodesic
 
-import plotting, utils
+import utils
 
-tc_name, tc_id, start_time, end_time = utils.load_tc_data()
-ds = xr.open_dataset(f"/scratch/ll44/sc6160/out/tracks/{tc_name}_{tc_id}_tracks.nc")
+tc_file = sys.argv[1]
+tc_name, tc_id, start_time, end_time, tc_dir = utils.load_tc_data(tc_file)
+
+ds = None
+try:
+    ds = xr.open_dataset(f"/scratch/ll44/sc6160/out/tracks/{tc_name}_{tc_id}_tracks.nc")
+except:
+    print(f"No data for {tc_name} yet.")
+    sys.exit(0)
 
 def plot_track(ax, lons, lats, color, title):
     ax.add_feature(cfeature.COASTLINE)
@@ -44,4 +52,4 @@ plot_track(ax_pred,
            'red',
            'Track w/ GC predicted data')
 
-plt.savefig(f"/scratch/ll44/sc6160/out/plots/tracks/comparisons/{tc_name}_{tc_id}_track_comparison.png")
+plt.savefig(f"/scratch/ll44/sc6160/out/plots/tracks/{tc_name}_{tc_id}_tracks.png")
