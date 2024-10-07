@@ -1,0 +1,28 @@
+#!/bin/bash
+
+#PBS -N all_summary
+#PBS -q normal
+#PBS -P ll44
+#PBS -l walltime=02:00:00
+#PBS -l ncpus=48
+#PBS -l ngpus=0
+#PBS -l mem=150GB
+#PBS -l jobfs=150GB
+#PBS -l storage=scratch/ll44+scratch/x77
+
+module purge
+module load python3/3.11.7
+source /home/131/sc6160/environments/graphcast_env/bin/activate
+
+TC_DIR="/scratch/ll44/sc6160/data/tc_data"
+
+for TC_FILE in "$TC_DIR"/*.json
+do
+    python3 /scratch/ll44/sc6160/save_intensity.py "$TC_FILE"
+done
+
+python3 /scratch/ll44/sc6160/summary_ramp_up.py
+python3 /scratch/ll44/sc6160/summary_rmse.py
+python3 /scratch/ll44/sc6160/summary_stats.py
+
+deactivate
