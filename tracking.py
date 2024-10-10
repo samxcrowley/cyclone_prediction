@@ -7,7 +7,7 @@ from scipy.ndimage import minimum_filter, maximum_filter
 from metpy.units import units, concatenate
 import metpy.calc as mpcalc
 
-import src.utils.utils as utils
+import utils
 
 def gc_track(preds, start_lat, start_lon, start_time, ref_time):
 
@@ -32,8 +32,6 @@ def gc_track(preds, start_lat, start_lon, start_time, ref_time):
             break
 
         mslp_deg = 1
-        if utils.is_on_land(mask_data, current_lat, current_lon):
-            mslp_deg = 2.5
 
         mslp = utils.get_data_region(preds['mean_sea_level_pressure'], time_delta, current_lat, current_lon, mslp_deg)
         mslp_mask = (mslp == minimum_filter(mslp, size=5))
@@ -58,18 +56,17 @@ def gc_track(preds, start_lat, start_lon, start_time, ref_time):
             vort_deg = 2.5
             vort = calc_vort(utils.get_data_region(preds.sel(level=850), time_delta, mslp_lat, mslp_lon, vort_deg))
             
-            vort_threshold = -5e-5
+            vort_threshold = -3.5e-5
             vort_threshold_limit = -1e-5
             vort_threshold_decay = 0.5e-5
 
             if utils.is_on_land(mask_data, current_lat, current_lon):
-                vort_threshold = -1.5e-5
+                vort_threshold = -2e-5
 
-            if np.all(vort >= vort_threshold):
-                continue
-                # vort_threshold += vort_threshold_decay
-                # if vort_threshold > vort_threshold_limit:
-                #     continue
+            while np.all(vort >= vort_threshold):
+                vort_threshold += vort_threshold_decay
+                if vort_threshold > vort_threshold_limit:
+                    continue
 
             # if all criteria met this is a valid position for the track
             criteria_met = True

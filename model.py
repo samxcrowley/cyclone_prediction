@@ -4,7 +4,7 @@ import xarray
 import jax
 from graphcast import autoregressive, casting, checkpoint, graphcast, normalization, xarray_tree, xarray_jax
 
-import src.utils.utils as utils
+import utils
 
 def load_model_from_cache(model_path):
 

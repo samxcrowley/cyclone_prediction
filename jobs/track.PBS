@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#PBS -N Megan-tracks
+#PBS -N Gretel-tracks
 #PBS -q normal
 #PBS -P ll44
 #PBS -l walltime=00:30:00
-#PBS -l ncpus=96
+#PBS -l ncpus=48
 #PBS -l ngpus=0
 #PBS -l mem=100GB
 #PBS -l jobfs=50GB
@@ -14,7 +14,7 @@ module purge
 module load python3/3.11.7
 source /home/131/sc6160/environments/graphcast_env/bin/activate
 
-python3 /scratch/ll44/sc6160/save_tracks.py /scratch/ll44/sc6160/data/tc_data/Megan.json
-python3 /scratch/ll44/sc6160/plot_tracks.py /scratch/ll44/sc6160/data/tc_data/Megan.json
+python3 /scratch/ll44/sc6160/save_tracks.py /scratch/ll44/sc6160/data/tc_data/Gretel.json
+python3 /scratch/ll44/sc6160/plot_tracks.py /scratch/ll44/sc6160/data/tc_data/Gretel.json
 
 deactivate

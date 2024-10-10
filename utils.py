@@ -102,3 +102,12 @@ def get_all_tc_names():
     all_files = os.listdir("/scratch/ll44/sc6160/data/tc_data")
     tc_names = [f[:-5] for f in all_files if f.endswith('.json')]
     return tc_names
+
+def get_all_good_tc_names():
+
+    names = []
+    
+    with open("/scratch/ll44/sc6160/data/good_tcs.txt") as f:
+        names = [line.strip() for line in f]
+
+    return names

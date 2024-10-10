@@ -10,7 +10,7 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from geopy.distance import geodesic
 
-import src.utils.utils as utils
+import utils
 
 tc_file = sys.argv[1]
 tc_name, tc_id, start_time, end_time, tc_dir = utils.load_tc_data(tc_file)

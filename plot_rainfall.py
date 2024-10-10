@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from geopy.distance import geodesic
-import src.utils.utils as utils
+import utils
 from subprocess import Popen
 from getpass import getpass
 
@@ -46,14 +46,14 @@ im1 = ax1.pcolormesh(longitudes, latitudes, precip_density_imerg,
                      shading='auto', cmap='Blues', vmin=0, vmax=max_value,
                      transform=proj)
 ax1.coastlines(linewidth=0.5)
-ax1.set_title('IMERG', pad=5)
+ax1.set_title('Observed', pad=5)
 
 # GraphCast
 im2 = ax2.pcolormesh(longitudes, latitudes, precip_density_graphcast, 
                      shading='auto', cmap='Blues', vmin=0, vmax=max_value,
                      transform=proj)
 ax2.coastlines(linewidth=0.5)
-ax2.set_title('GraphCast', pad=5)
+ax2.set_title('Predicted', pad=5)
 
 # difference
 precip_density_difference = precip_density_imerg - precip_density_graphcast

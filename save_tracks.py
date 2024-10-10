@@ -5,7 +5,7 @@ import xarray as xr
 import numpy as np
 import pandas as pd
 
-import src.utils.utils as utils, tracking as tracking
+import utils, tracking as tracking
 
 tc_file = sys.argv[1]
 tc_name, tc_id, start_time, end_time, tc_dir = utils.load_tc_data(tc_file)

@@ -4,7 +4,7 @@ from datetime import datetime
 import xarray as xr
 from glob import glob
 
-import src.utils.utils as utils
+import utils
 
 tc_file = sys.argv[1]
 tc_name, tc_id, start_time, end_time, tc_dir = utils.load_tc_data(tc_file)

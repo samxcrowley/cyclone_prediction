@@ -1,6 +1,6 @@
 import sys, os
 import xarray as xr
-import src.utils.utils as utils
+import utils
 
 tc_names = utils.get_all_tc_names()
 

@@ -3,11 +3,11 @@
 #PBS -N all_intensity
 #PBS -q normal
 #PBS -P ll44
-#PBS -l walltime=01:00:00
+#PBS -l walltime=00:30:00
 #PBS -l ncpus=48
 #PBS -l ngpus=0
-#PBS -l mem=150GB
-#PBS -l jobfs=150GB
+#PBS -l mem=50GB
+#PBS -l jobfs=50GB
 #PBS -l storage=scratch/ll44+scratch/x77
 
 module purge

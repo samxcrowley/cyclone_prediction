@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from geopy.distance import geodesic
-import src.utils.utils as utils
+import utils
 from subprocess import Popen
 from getpass import getpass
 

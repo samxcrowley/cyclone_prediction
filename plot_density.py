@@ -15,9 +15,19 @@ import metpy.plots as mp
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
-import src.utils.utils as utils
+import utils
 
-ds = xr.open_dataset("/scratch/ll44/sc6160/out/density/density.nc")
+import argparse
+
+parser = argparse.ArgumentParser(description='Process an ensemble of TCs.')
+parser.add_argument('--good', action='store_true', help='Only process the "good" TCs')
+args = parser.parse_args()
+
+if args.good:
+    ds = xr.open_dataset("/scratch/ll44/sc6160/out/density/density_good.nc")
+else:
+    ds = xr.open_dataset("/scratch/ll44/sc6160/out/density/density_all.nc")
+
 
 obs_density = ds['obs']
 pred_density = ds['pred']
@@ -47,7 +57,7 @@ gs = fig.add_gridspec(1, 6, width_ratios=[1, 0.02, 1, 0.02, 1, 0.02], wspace=0.0
 
 # plot obs_density
 ax1 = fig.add_subplot(gs[0], projection=ccrs.PlateCarree())
-pcm1 = plot_density(ax1, obs_density, 'Observed Density', cmap='jet', norm=mcolors.Normalize(vmin=vmin, vmax=vmax))
+pcm1 = plot_density(ax1, obs_density, 'Observed', cmap='jet', norm=mcolors.Normalize(vmin=vmin, vmax=vmax))
 
 # colorbar for obs_density
 cbar1 = fig.colorbar(pcm1, ax=ax1, orientation='vertical')
@@ -55,7 +65,7 @@ cbar1.set_label('Density')
 
 # plot pred_density
 ax2 = fig.add_subplot(gs[2], projection=ccrs.PlateCarree())
-pcm2 = plot_density(ax2, pred_density, 'Predicted Density', cmap='jet', norm=mcolors.Normalize(vmin=vmin, vmax=vmax))
+pcm2 = plot_density(ax2, pred_density, 'Predicted', cmap='jet', norm=mcolors.Normalize(vmin=vmin, vmax=vmax))
 
 # colorbar for pred_density
 cbar2 = fig.colorbar(pcm2, ax=ax2, orientation='vertical')
@@ -68,7 +78,7 @@ diff_density = obs_density - pred_density
 # set symmetric color limits for difference plot
 diff_max = np.abs(diff_density).max()
 norm_diff = mcolors.TwoSlopeNorm(vmin=-diff_max, vcenter=0, vmax=diff_max)
-pcm3 = plot_density(ax3, diff_density, 'Difference (Observed - Predicted)', cmap='RdBu_r', norm=norm_diff)
+pcm3 = plot_density(ax3, diff_density, 'Difference', cmap='RdBu_r', norm=norm_diff)
 
 # colorbar for difference plot
 cbar3 = fig.colorbar(pcm3, ax=ax3, orientation='vertical')
@@ -78,4 +88,7 @@ cbar1.ax.set_position([ax1.get_position().x1 + 0.005, ax1.get_position().y0, 0.0
 cbar2.ax.set_position([ax2.get_position().x1 + 0.005, ax2.get_position().y0, 0.01, ax2.get_position().height])
 cbar3.ax.set_position([ax3.get_position().x1 + 0.005, ax3.get_position().y0, 0.01, ax3.get_position().height])
 
-plt.savefig("/scratch/ll44/sc6160/out/plots/density/density_all.png", dpi=300, bbox_inches='tight')
+if args.good:
+    plt.savefig("/scratch/ll44/sc6160/out/plots/summary/density_good.png", dpi=300, bbox_inches='tight')
+else:
+    plt.savefig("/scratch/ll44/sc6160/out/plots/summary/density_all.png", dpi=300, bbox_inches='tight')

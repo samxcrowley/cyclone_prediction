@@ -1,11 +1,11 @@
 import os, sys
 import model
-import src.utils.utils as utils
+import utils
 import dataclasses
 
 import xarray
 import jax
-import src.utils.utils as utils
+import utils
 import numpy as np
 from graphcast import data_utils, rollout
 

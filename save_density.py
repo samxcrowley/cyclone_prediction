@@ -1,12 +1,20 @@
 from datetime import datetime, timedelta
 import sys
-
 import xarray as xr
 import numpy as np
 import pandas as pd
 from geopy.distance import geodesic
+import utils
+import argparse
 
-import src.utils.utils as utils
+parser = argparse.ArgumentParser(description='Process an ensemble of TCs.')
+parser.add_argument('--good', action='store_true', help='Only process the "good" TCs')
+args = parser.parse_args()
+
+if args.good:
+    tc_names = utils.get_all_good_tc_names()
+else:
+    tc_names = utils.get_all_tc_names()
 
 obs_tracks = []
 pred_tracks = []
@@ -14,11 +22,9 @@ pred_tracks = []
 lats = np.arange(utils.AUS_LAT_BOUNDS[0], utils.AUS_LAT_BOUNDS[1], 0.25)
 lons = np.arange(utils.AUS_LON_BOUNDS[0], utils.AUS_LON_BOUNDS[1], 0.25)
 
-tc_names = utils.get_all_tc_names()
-
 for tc_name in tc_names:
 
-    tc_file = f"/scratch/ll44/sc6160/tc_data/{tc_name}.json"
+    tc_file = f"/scratch/ll44/sc6160/data/tc_data/{tc_name}.json"
     if utils.load_tc_data(tc_file) == None:
         continue
     tc_name, tc_id, start_time, end_time, tc_dir = utils.load_tc_data(tc_file)
@@ -88,4 +94,7 @@ ds = xr.Dataset(
     }
 )
 
-ds.to_netcdf("/scratch/ll44/sc6160/out/density/density.nc")
+if args.good:
+    ds.to_netcdf("/scratch/ll44/sc6160/out/density/density_good.nc")
+else:
+    ds.to_netcdf("/scratch/ll44/sc6160/out/density/density_all.nc")

@@ -3,11 +3,11 @@
 #PBS -N all_summary
 #PBS -q normal
 #PBS -P ll44
-#PBS -l walltime=02:00:00
+#PBS -l walltime=04:00:00
 #PBS -l ncpus=48
 #PBS -l ngpus=0
-#PBS -l mem=150GB
-#PBS -l jobfs=150GB
+#PBS -l mem=100GB
+#PBS -l jobfs=100GB
 #PBS -l storage=scratch/ll44+scratch/x77
 
 module purge
@@ -18,11 +18,29 @@ TC_DIR="/scratch/ll44/sc6160/data/tc_data"
 
 for TC_FILE in "$TC_DIR"/*.json
 do
+
+    python3 /scratch/ll44/sc6160/save_tracks.py "$TC_FILE"
+    python3 /scratch/ll44/sc6160/plot_tracks.py "$TC_FILE"
+
+    python3 /scratch/ll44/sc6160/save_rainfall.py "$TC_FILE"
+    python3 /scratch/ll44/sc6160/plot_rainfall.py "$TC_FILE"
+
     python3 /scratch/ll44/sc6160/save_intensity.py "$TC_FILE"
+
 done
 
+python3 /scratch/ll44/sc6160/save_density.py
+python3 /scratch/ll44/sc6160/save_density.py --good
+python3 /scratch/ll44/sc6160/plot_density.py
+python3 /scratch/ll44/sc6160/plot_density.py --good
+
 python3 /scratch/ll44/sc6160/summary_ramp_up.py
+python3 /scratch/ll44/sc6160/summary_ramp_up.py --good
 python3 /scratch/ll44/sc6160/summary_rmse.py
-python3 /scratch/ll44/sc6160/summary_stats.py
+python3 /scratch/ll44/sc6160/summary_rmse.py --good
+python3 /scratch/ll44/sc6160/summary_rainfall.py
+python3 /scratch/ll44/sc6160/summary_rainfall.py --good
+python3 /scratch/ll44/sc6160/summary_intensity.py
+python3 /scratch/ll44/sc6160/summary_intensity.py --good
 
 deactivate
