@@ -7,3 +7,4 @@ tmp/
 jobs/
 *.e*
 *.o*
+testing.py
