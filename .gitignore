@@ -8,3 +8,6 @@ jobs/
 *.e*
 *.o*
 testing.py
+find_missing.py
+find_tc_id.py
+get_rainfall_cookies.py
