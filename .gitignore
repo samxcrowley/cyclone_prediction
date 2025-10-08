@@ -4,5 +4,6 @@ out/
 old/
 data/
 tmp/
+jobs/
 *.e*
 *.o*
