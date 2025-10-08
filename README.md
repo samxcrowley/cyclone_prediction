@@ -1,3 +1,3 @@
-Description
+This was a project with the ANU Institute for Climate, Energy & Disaster Solutions (ICEDS) to evaluate the effectiveness of Google DeepMind's model GraphCast for the prediction and identification of Tropical Cyclones (TCs) in Australia and the surrounding regions.
 
-Usage
+Using ERA5 climate reanalysis data, the model was trained to predict known TCs with a tracking algorithm (found in `tracking.py`) applied on top. Overall, the model could fairly effectively track TC trajectories and predict their intensities for a period of up to 10 days after the start time. The model only needed to be given climate data at a given start time and data at the time 6 hours before, and it could predict up to 10 days afterwards in 6-hour steps.
